@@ -1,7 +1,3 @@
-// ============================================================
-// BibliaPlus Pro — Global Types
-// ============================================================
-
 export type Testament = 'AT' | 'NT';
 
 export interface Book {
@@ -14,7 +10,7 @@ export interface Book {
 }
 
 export interface Verse {
-  id: string; // format: "bookId-chapter-verse"
+  id: string;
   bookId: number;
   bookName: string;
   chapter: number;
@@ -29,6 +25,22 @@ export interface Comment {
   text: string;
 }
 
+export interface DictionaryEntry {
+  id: string;
+  title: string;
+  content: string;
+}
+
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  category: string;
+  imageUrl: string;
+  date: string;
+}
+
 export interface Favorite {
   id: string;
   verseId: string;
@@ -37,7 +49,7 @@ export interface Favorite {
   chapter: number;
   verse: number;
   text: string;
-  savedAt: number; // timestamp
+  savedAt: number;
 }
 
 export interface SearchResult {
@@ -47,18 +59,26 @@ export interface SearchResult {
   theologian?: string;
 }
 
-// ============================================================
-// Navigation Types
-// ============================================================
-
-export type RootTabParamList = {
-  BibleTab: undefined;
-  SearchTab: undefined;
-  FavoritesTab: undefined;
-};
-
 export type BibleStackParamList = {
   Books: undefined;
   Chapters: { book: Book };
   Reader: { book: Book; chapter: number; highlightVerseId?: string };
+};
+
+export type DictionaryStackParamList = {
+  DictionaryList: undefined;
+  DictionaryDetail: { entry: DictionaryEntry };
+};
+
+export type ArticlesStackParamList = {
+  ArticlesList: undefined;
+  ArticleDetail: { article: Article };
+};
+
+export type RootTabParamList = {
+  BibleTab: undefined;
+  SearchTab: undefined;
+  DictionariesTab: undefined;
+  ArticlesTab: undefined;
+  FavoritesTab: undefined;
 };
