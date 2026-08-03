@@ -1,5 +1,5 @@
 // ============================================================
-// BibliaPlus Pro — Layout components
+// BibliaPlus Pro — Layout components  (Redesign 2026)
 // ============================================================
 
 import React from 'react';
@@ -7,7 +7,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Colors, Typography, FontSizes, Spacing } from '../../constants/theme';
 
 // ─────────────────────────────────────────────────────────────
-// SectionHeader — AT / NT divider
+// SectionHeader — Divisor con título
 // ─────────────────────────────────────────────────────────────
 
 interface SectionHeaderProps {

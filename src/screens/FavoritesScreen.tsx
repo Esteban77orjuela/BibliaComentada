@@ -1,5 +1,5 @@
 // ============================================================
-// BibliaPlus Pro — FavoritesScreen
+// BibliaPlus Pro — FavoritesScreen  (Redesign 2026)
 // ============================================================
 
 import React, { useState, useCallback } from 'react';
@@ -14,7 +14,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Favorite } from '../types';
-import { Colors, Typography, FontSizes, Spacing, Radius } from '../constants/theme';
+import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../constants/theme';
 import * as FavoritesStore from '../store/FavoritesStore';
 import { EmptyState } from '../components/layout';
 
@@ -24,7 +24,6 @@ export default function FavoritesScreen() {
   const navigation = useNavigation<Nav>();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
 
-  // Refresca la lista cada vez que la pantalla gana foco
   useFocusEffect(
     useCallback(() => {
       FavoritesStore.getFavorites().then(setFavorites);
@@ -38,7 +37,7 @@ export default function FavoritesScreen() {
         book: {
           id: fav.bookId,
           name: fav.bookName,
-          abbreviation: fav.bookName.substring(0, 3), // mock
+          abbreviation: fav.bookName.substring(0, 3),
           testament: fav.bookId <= 39 ? 'AT' : 'NT',
         },
         chapter: fav.chapter,
@@ -50,7 +49,7 @@ export default function FavoritesScreen() {
   const handleRemove = (verseId: string) => {
     Alert.alert(
       'Eliminar favorito',
-      '¿Estás seguro de que quieres eliminar este versículo de tus favoritos?',
+      '¿Estás seguro de que quieres eliminar este versículo?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -69,22 +68,26 @@ export default function FavoritesScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Mis Favoritos</Text>
+        <Text style={styles.title}>Guardados</Text>
+        {favorites.length > 0 && (
+          <Text style={styles.count}>{favorites.length} versículos</Text>
+        )}
       </View>
 
       {favorites.length === 0 ? (
         <EmptyState
           emoji="🔖"
-          title="Sin favoritos"
-          subtitle="Toca el ícono de marca páginas al leer un versículo para guardarlo aquí."
+          title="Sin guardados"
+          subtitle="Toca cualquier versículo y guárdalo para leerlo aquí."
         />
       ) : (
         <FlatList
           data={favorites}
           keyExtractor={item => item.id}
           contentContainerStyle={styles.list}
+          showsVerticalScrollIndicator={false}
           renderItem={({ item }) => (
-            <FavoriteRow
+            <FavoriteCard
               favorite={item}
               onPress={() => handlePress(item)}
               onRemove={() => handleRemove(item.verseId)}
@@ -96,7 +99,7 @@ export default function FavoritesScreen() {
   );
 }
 
-function FavoriteRow({
+function FavoriteCard({
   favorite,
   onPress,
   onRemove,
@@ -106,13 +109,16 @@ function FavoriteRow({
   onRemove: () => void;
 }) {
   return (
-    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
       <View style={styles.cardHeader}>
         <Text style={styles.reference}>
           {favorite.bookName} {favorite.chapter}:{favorite.verse}
         </Text>
-        <TouchableOpacity style={styles.deleteBtn} onPress={onRemove} hitSlop={10}>
-          <Text style={styles.deleteIcon}>🗑️</Text>
+        <TouchableOpacity style={styles.removeBtn} onPress={onRemove} hitSlop={12}>
+          <View style={styles.removeIcon}>
+            <View style={{ width: 12, height: 2, backgroundColor: Colors.textMuted, borderRadius: 1, transform: [{ rotate: '45deg' }], position: 'absolute' }} />
+            <View style={{ width: 12, height: 2, backgroundColor: Colors.textMuted, borderRadius: 1, transform: [{ rotate: '-45deg' }], position: 'absolute' }} />
+          </View>
         </TouchableOpacity>
       </View>
       <Text style={styles.text} numberOfLines={3}>
@@ -130,29 +136,31 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.xl,
-    paddingBottom: Spacing.md,
-    backgroundColor: Colors.surfaceElevated,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.base,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: Spacing.md,
   },
   title: {
-    fontFamily: Typography.serif.bold,
-    fontSize: FontSizes.xl,
+    fontFamily: Typography.display.bold,
+    fontSize: FontSizes['2xl'],
     color: Colors.textPrimary,
+  },
+  count: {
+    fontFamily: Typography.sans.regular,
+    fontSize: FontSizes.sm,
+    color: Colors.textMuted,
   },
   list: {
     padding: Spacing.base,
     paddingBottom: Spacing['3xl'],
   },
-
-  // Card
   card: {
     backgroundColor: Colors.surfaceElevated,
     padding: Spacing.base,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    ...Shadows.sm,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -171,10 +179,13 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     lineHeight: 22,
   },
-  deleteBtn: {
+  removeBtn: {
     padding: Spacing.xs,
   },
-  deleteIcon: {
-    fontSize: 16,
+  removeIcon: {
+    width: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

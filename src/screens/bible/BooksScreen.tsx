@@ -1,49 +1,42 @@
 // ============================================================
-// BibliaPlus Pro — BooksScreen
-// Lista de libros dividida en AT / NT
+// BibliaPlus Pro — BooksScreen  (Redesign 2026)
+// Lista de libros filtrada por testamento (AT o NT)
 // ============================================================
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
-  SectionList,
+  FlatList,
   TouchableOpacity,
   StyleSheet,
   StatusBar,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Book, BibleStackParamList } from '../../types';
+import { Book, BibleStackParamList, Testament } from '../../types';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../../constants/theme';
 import * as DatabaseService from '../../services/DatabaseService';
-import { SectionHeader, EmptyState } from '../../components/layout';
 
+type Route = RouteProp<BibleStackParamList, 'Books'>;
 type Nav = NativeStackNavigationProp<BibleStackParamList, 'Books'>;
-
-interface Section {
-  title: string;
-  count: number;
-  data: Book[];
-}
 
 export default function BooksScreen() {
   const navigation = useNavigation<Nav>();
-  const [sections, setSections] = useState<Section[]>([]);
+  const route = useRoute<Route>();
+  const testament = route.params?.testament ?? 'AT';
+
+  const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    DatabaseService.getBooks().then(books => {
-      const at = books.filter(b => b.testament === 'AT');
-      const nt = books.filter(b => b.testament === 'NT');
-      setSections([
-        { title: 'Antiguo Testamento', count: at.length, data: at },
-        { title: 'Nuevo Testamento', count: nt.length, data: nt },
-      ]);
+    DatabaseService.getBooks().then(allBooks => {
+      const filtered = allBooks.filter(b => b.testament === testament);
+      setBooks(filtered);
       setLoading(false);
     });
-  }, []);
+  }, [testament]);
 
   const handleBookPress = useCallback(
     (book: Book) => {
@@ -63,23 +56,21 @@ export default function BooksScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
-      <SectionList
-        sections={sections}
+
+      <FlatList
+        data={books}
         keyExtractor={item => String(item.id)}
-        stickySectionHeadersEnabled
-        renderSectionHeader={({ section }) => (
-          <SectionHeader title={section.title} count={section.count} />
-        )}
-        renderItem={({ item: book, index, section }) => (
+        renderItem={({ item, index }) => (
           <BookRow
-            book={book}
-            isLast={index === section.data.length - 1}
+            book={item}
+            isFirst={index === 0}
+            isLast={index === books.length - 1}
             onPress={handleBookPress}
           />
         )}
         contentContainerStyle={styles.listContent}
-        ListHeaderComponent={<Header />}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={<ListHeader count={books.length} testament={testament} />}
       />
     </View>
   );
@@ -89,47 +80,44 @@ export default function BooksScreen() {
 // Sub-components
 // ─────────────────────────────────────────────────────────────
 
-function Header() {
+function ListHeader({ count, testament }: { count: number; testament: Testament }) {
   return (
-    <View style={styles.header}>
-      <Text style={styles.headerTitle}>La Santa Biblia</Text>
-      <Text style={styles.headerSubtitle}>
-        Reina-Valera 1960 · 66 libros · Comentarios exegéticos
-      </Text>
-      <View style={styles.headerDivider} />
+    <View style={styles.listHeader}>
+      <Text style={styles.listHeaderCount}>{count} libros</Text>
     </View>
   );
 }
 
 function BookRow({
   book,
+  isFirst,
   isLast,
   onPress,
 }: {
   book: Book;
+  isFirst: boolean;
   isLast: boolean;
   onPress: (book: Book) => void;
 }) {
   return (
-    <TouchableOpacity
-      onPress={() => onPress(book)}
-      style={[styles.bookRow, isLast && styles.bookRowLast]}
-      activeOpacity={0.6}
-    >
-      {/* Abreviatura */}
-      <View style={styles.abbrevContainer}>
-        <Text style={styles.abbrevText}>{book.abbreviation}</Text>
-      </View>
-
-      {/* Info */}
-      <View style={styles.bookInfo}>
-        <Text style={styles.bookName}>{book.name}</Text>
-        <Text style={styles.bookMeta}>{book.totalChapters} capítulos</Text>
-      </View>
-
-      {/* Flecha */}
-      <Text style={styles.arrow}>›</Text>
-    </TouchableOpacity>
+    <View style={styles.groupWrapper}>
+      <TouchableOpacity
+        onPress={() => onPress(book)}
+        style={[
+          styles.bookRow,
+          isFirst && styles.bookRowFirst,
+          isLast && styles.bookRowLast,
+        ]}
+        activeOpacity={0.6}
+      >
+        <View style={styles.bookInfo}>
+          <Text style={styles.bookName}>{book.name}</Text>
+          <Text style={styles.bookMeta}>{book.totalChapters} capítulos</Text>
+        </View>
+        <Text style={styles.arrow}>›</Text>
+      </TouchableOpacity>
+      {!isLast && <View style={styles.divider} />}
+    </View>
   );
 }
 
@@ -144,63 +132,49 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Colors.background,
   },
-
-  // Header
-  header: {
+  listContent: {
     paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.lg,
+    paddingBottom: Spacing['3xl'],
+  },
+  listHeader: {
+    paddingTop: Spacing.sm,
     paddingBottom: Spacing.md,
   },
-  headerTitle: {
-    fontFamily: Typography.serif.bold,
-    fontSize: FontSizes['2xl'],
-    color: Colors.textPrimary,
-  },
-  headerSubtitle: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.sm,
+  listHeaderCount: {
+    fontFamily: Typography.sans.medium,
+    fontSize: FontSizes.xs,
     color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  headerDivider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginTop: Spacing.base,
+    textTransform: 'uppercase',
+    letterSpacing: 1.2,
   },
 
-  // List
-  listContent: {
-    paddingBottom: Spacing['2xl'],
+  // Group card wrapping all rows
+  groupWrapper: {
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: Radius.lg,
+    overflow: 'hidden',
+    ...Shadows.sm,
+    marginBottom: 1,
   },
-
-  // Book row
   bookRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.base + 2,
     backgroundColor: Colors.surfaceElevated,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    gap: Spacing.md,
+  },
+  bookRowFirst: {
+    borderTopLeftRadius: Radius.lg,
+    borderTopRightRadius: Radius.lg,
   },
   bookRowLast: {
-    borderBottomWidth: 0,
+    borderBottomLeftRadius: Radius.lg,
+    borderBottomRightRadius: Radius.lg,
   },
-  abbrevContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  abbrevText: {
-    fontFamily: Typography.sans.bold,
-    fontSize: FontSizes.xs,
-    color: Colors.accent,
-    textAlign: 'center',
+  divider: {
+    height: 1,
+    backgroundColor: Colors.border,
+    marginHorizontal: Spacing.base,
   },
   bookInfo: {
     flex: 1,
@@ -217,7 +191,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   arrow: {
-    fontSize: 20,
+    fontSize: 22,
     color: Colors.textMuted,
+    lineHeight: 24,
   },
 });

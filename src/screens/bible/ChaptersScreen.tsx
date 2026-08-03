@@ -1,6 +1,6 @@
 // ============================================================
-// BibliaPlus Pro — ChaptersScreen
-// Grid numérico de capítulos del libro seleccionado
+// BibliaPlus Pro — ChaptersScreen  (Redesign 2026)
+// Grid de capítulos 4 columnas con celdas premium
 // ============================================================
 
 import React, { useEffect, useState } from 'react';
@@ -23,8 +23,9 @@ type Route = RouteProp<BibleStackParamList, 'Chapters'>;
 type Nav = NativeStackNavigationProp<BibleStackParamList, 'Chapters'>;
 
 const { width } = Dimensions.get('window');
-const NUM_COLS = 5;
-const CELL_SIZE = (width - Spacing.base * 2 - Spacing.sm * (NUM_COLS - 1)) / NUM_COLS;
+const NUM_COLS = 4;
+const CELL_GAP = Spacing.sm;
+const CELL_SIZE = (width - Spacing.base * 2 - CELL_GAP * (NUM_COLS - 1)) / NUM_COLS;
 
 export default function ChaptersScreen() {
   const route = useRoute<Route>();
@@ -53,23 +54,13 @@ export default function ChaptersScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Header del libro */}
       <View style={styles.bookHeader}>
-        <View style={styles.bookAbbrev}>
-          <Text style={styles.bookAbbrevText}>{book.abbreviation}</Text>
-        </View>
-        <View>
-          <Text style={styles.bookName}>{book.name}</Text>
-          <Text style={styles.bookMeta}>
-            {book.testament === 'AT' ? 'Antiguo Testamento' : 'Nuevo Testamento'} ·{' '}
-            {totalChapters} capítulos
-          </Text>
-        </View>
+        <Text style={styles.bookHeaderLabel}>SELECCIONAR CAPÍTULO</Text>
+        <Text style={styles.bookHeaderName}>{book.name}</Text>
+        <Text style={styles.bookHeaderMeta}>
+          {book.testament === 'AT' ? 'Antiguo Testamento' : 'Nuevo Testamento'} · {totalChapters} capítulos
+        </Text>
       </View>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.sectionLabel}>Selecciona un capítulo</Text>
 
       <FlatList
         data={chapters}
@@ -106,70 +97,45 @@ const styles = StyleSheet.create({
 
   // Book header
   bookHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.md,
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.base,
+    paddingTop: Spacing.base,
+    paddingBottom: Spacing.xl,
   },
-  bookAbbrev: {
-    width: 52,
-    height: 52,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bookAbbrevText: {
-    fontFamily: Typography.sans.bold,
-    fontSize: FontSizes.sm,
-    color: Colors.accent,
-  },
-  bookName: {
-    fontFamily: Typography.serif.bold,
-    fontSize: FontSizes.xl,
-    color: Colors.textPrimary,
-  },
-  bookMeta: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-
-  divider: {
-    height: 1,
-    backgroundColor: Colors.border,
-    marginHorizontal: Spacing.base,
-    marginBottom: Spacing.md,
-  },
-
-  sectionLabel: {
+  bookHeaderLabel: {
     fontFamily: Typography.sans.medium,
     fontSize: FontSizes.xs,
     color: Colors.textMuted,
+    letterSpacing: 1.5,
     textTransform: 'uppercase',
-    letterSpacing: 1.2,
-    paddingHorizontal: Spacing.base,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.xs,
+  },
+  bookHeaderName: {
+    fontFamily: Typography.display.bold,
+    fontSize: FontSizes['2xl'],
+    color: Colors.textPrimary,
+    lineHeight: 36,
+  },
+  bookHeaderMeta: {
+    fontFamily: Typography.sans.regular,
+    fontSize: FontSizes.sm,
+    color: Colors.textMuted,
+    marginTop: Spacing.xs,
   },
 
   // Grid
   grid: {
     paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing['2xl'],
+    paddingBottom: Spacing['3xl'],
   },
   row: {
-    gap: Spacing.sm,
-    marginBottom: Spacing.sm,
+    gap: CELL_GAP,
+    marginBottom: CELL_GAP,
   },
   chapterCell: {
     width: CELL_SIZE,
     height: CELL_SIZE,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     backgroundColor: Colors.surfaceElevated,
-    borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: 'center',
     justifyContent: 'center',
     ...Shadows.sm,

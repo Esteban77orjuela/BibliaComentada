@@ -1,12 +1,13 @@
 // ============================================================
-// BibliaPlus Pro — Bible Stack Navigator
-// Books → Chapters → Reader
+// BibliaPlus Pro — Bible Stack Navigator  (Redesign 2026)
+// Home → Books (by testament) → Chapters → Reader
 // ============================================================
 
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { BibleStackParamList } from '../types';
 import { Colors, Typography } from '../constants/theme';
+import HomeScreen from '../screens/bible/HomeScreen';
 import BooksScreen from '../screens/bible/BooksScreen';
 import ChaptersScreen from '../screens/bible/ChaptersScreen';
 import ReaderScreen from '../screens/bible/ReaderScreen';
@@ -31,9 +32,18 @@ export default function BibleStack() {
       }}
     >
       <Stack.Screen
+        name="Home"
+        component={HomeScreen}
+        options={{ headerShown: false }}
+      />
+      <Stack.Screen
         name="Books"
         component={BooksScreen}
-        options={{ title: 'La Biblia' }}
+        options={({ route }) => ({
+          title: (route.params as any)?.testament === 'NT'
+            ? 'Nuevo Testamento'
+            : 'Antiguo Testamento',
+        })}
       />
       <Stack.Screen
         name="Chapters"

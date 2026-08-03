@@ -15,6 +15,12 @@ import {
   Merriweather_700Bold,
   Merriweather_400Regular_Italic,
 } from '@expo-google-fonts/merriweather';
+import {
+  PlayfairDisplay_400Regular,
+  PlayfairDisplay_700Bold,
+  PlayfairDisplay_400Regular_Italic,
+  PlayfairDisplay_700Bold_Italic,
+} from '@expo-google-fonts/playfair-display';
 
 import TabNavigator from './src/navigation/TabNavigator';
 import * as DatabaseService from './src/services/DatabaseService';
@@ -64,6 +70,10 @@ export default function App() {
     Merriweather_400Regular,
     Merriweather_700Bold,
     Merriweather_400Regular_Italic,
+    PlayfairDisplay_400Regular,
+    PlayfairDisplay_700Bold,
+    PlayfairDisplay_400Regular_Italic,
+    PlayfairDisplay_700Bold_Italic,
   });
 
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
@@ -184,7 +194,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: Colors.background,
   },
   splash: {
     flex: 1,

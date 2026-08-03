@@ -60,7 +60,8 @@ export interface SearchResult {
 }
 
 export type BibleStackParamList = {
-  Books: undefined;
+  Home: undefined;
+  Books: { testament?: Testament };
   Chapters: { book: Book };
   Reader: { book: Book; chapter: number; highlightVerseId?: string };
 };

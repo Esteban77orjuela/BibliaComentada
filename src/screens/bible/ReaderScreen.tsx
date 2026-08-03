@@ -1,6 +1,6 @@
 // ============================================================
-// BibliaPlus Pro — ReaderScreen
-// Vista principal de lectura de capítulo con versículos expandibles
+// BibliaPlus Pro — ReaderScreen  (Redesign 2026)
+// Vista de capítulo — toca versículo → abre BottomSheet
 // ============================================================
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
@@ -17,6 +17,7 @@ import { BibleStackParamList, Verse } from '../../types';
 import { Colors, Typography, FontSizes, Spacing } from '../../constants/theme';
 import * as DatabaseService from '../../services/DatabaseService';
 import VerseRow from '../../components/ui/VerseRow';
+import VerseBottomSheet from '../../components/ui/VerseBottomSheet';
 import { EmptyState } from '../../components/layout';
 
 type Route = RouteProp<BibleStackParamList, 'Reader'>;
@@ -28,19 +29,19 @@ export default function ReaderScreen() {
 
   const [verses, setVerses] = useState<Verse[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedVerseId, setExpandedVerseId] = useState<string | null>(
-    highlightVerseId ?? null
-  );
+
+  // BottomSheet state
+  const [selectedVerse, setSelectedVerse] = useState<Verse | null>(null);
+  const [sheetVisible, setSheetVisible] = useState(false);
 
   // ── Load verses ──
   useEffect(() => {
     setLoading(true);
-    setExpandedVerseId(highlightVerseId ?? null);
     DatabaseService.getVerses(book.id, chapter).then(v => {
       setVerses(v);
       setLoading(false);
     });
-  }, [book.id, chapter, highlightVerseId]);
+  }, [book.id, chapter]);
 
   // ── Auto-scroll to highlighted verse ──
   useEffect(() => {
@@ -53,20 +54,24 @@ export default function ReaderScreen() {
     }
   }, [verses, highlightVerseId]);
 
-  const handleToggle = useCallback((verseId: string) => {
-    setExpandedVerseId(prev => (prev === verseId ? null : verseId));
+  const handleVersePress = useCallback((verse: Verse) => {
+    setSelectedVerse(verse);
+    setSheetVisible(true);
+  }, []);
+
+  const handleCloseSheet = useCallback(() => {
+    setSheetVisible(false);
   }, []);
 
   const renderItem = useCallback(
     ({ item }: ListRenderItemInfo<Verse>) => (
       <VerseRow
         verse={item}
-        isExpanded={expandedVerseId === item.id}
-        isHighlighted={item.id === highlightVerseId && expandedVerseId !== item.id}
-        onToggle={handleToggle}
+        isHighlighted={item.id === highlightVerseId && !sheetVisible}
+        onPress={handleVersePress}
       />
     ),
-    [expandedVerseId, highlightVerseId, handleToggle]
+    [highlightVerseId, sheetVisible, handleVersePress]
   );
 
   if (loading) {
@@ -82,7 +87,7 @@ export default function ReaderScreen() {
       <EmptyState
         emoji="📜"
         title="Sin versículos disponibles"
-        subtitle="Los datos de este capítulo aún no están en el mock. Estarán disponibles con el archivo .db real."
+        subtitle="Los datos de este capítulo aún no están disponibles."
       />
     );
   }
@@ -95,15 +100,23 @@ export default function ReaderScreen() {
         keyExtractor={item => item.id}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
-        ListHeaderComponent={<ChapterHeader book={book.name} chapter={chapter} total={verses.length} />}
+        ListHeaderComponent={
+          <ChapterHeader book={book.name} chapter={chapter} total={verses.length} />
+        }
         showsVerticalScrollIndicator={false}
         onScrollToIndexFailed={info => {
-          // Fallback: scroll to offset estimate
           flatListRef.current?.scrollToOffset({
             offset: info.averageItemLength * info.index,
             animated: true,
           });
         }}
+      />
+
+      {/* BottomSheet de comentarios */}
+      <VerseBottomSheet
+        verse={selectedVerse}
+        visible={sheetVisible}
+        onClose={handleCloseSheet}
       />
     </View>
   );
@@ -123,10 +136,7 @@ function ChapterHeader({
       <Text style={styles.chapterTitle}>
         {book} {chapter}
       </Text>
-      <Text style={styles.chapterMeta}>{total} versículos</Text>
-      <Text style={styles.chapterHint}>
-        Toca un versículo para ver comentarios exegéticos
-      </Text>
+      <Text style={styles.chapterMeta}>{total} versículos · Toca para ver comentarios</Text>
     </View>
   );
 }
@@ -143,36 +153,28 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
   },
   listContent: {
-    paddingTop: Spacing.md,
-    paddingBottom: Spacing['3xl'],
+    paddingTop: Spacing.base,
+    paddingBottom: Spacing['4xl'],
   },
 
   // Chapter Header
   chapterHeader: {
-    paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing.base,
-    marginBottom: Spacing.sm,
+    paddingHorizontal: Spacing.xl,
+    paddingBottom: Spacing.xl,
+    paddingTop: Spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+    marginBottom: Spacing.base,
   },
   chapterTitle: {
-    fontFamily: Typography.serif.bold,
+    fontFamily: Typography.display.bold,
     fontSize: FontSizes['2xl'],
     color: Colors.textPrimary,
+    marginBottom: 4,
   },
   chapterMeta: {
     fontFamily: Typography.sans.regular,
     fontSize: FontSizes.xs,
     color: Colors.textMuted,
-    marginTop: 4,
-  },
-  chapterHint: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.accent,
-    marginTop: 8,
-    paddingVertical: Spacing.xs,
-    paddingHorizontal: Spacing.sm,
-    backgroundColor: Colors.accentLight,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
   },
 });

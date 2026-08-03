@@ -1,5 +1,5 @@
 // ============================================================
-// BibliaPlus Pro — SearchScreen
+// BibliaPlus Pro — SearchScreen  (Redesign 2026)
 // ============================================================
 
 import React, { useState, useCallback } from 'react';
@@ -12,18 +12,15 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BibleStackParamList, SearchResult } from '../types';
-import { Colors, Typography, FontSizes, Spacing, Radius } from '../constants/theme';
+import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../constants/theme';
 import * as DatabaseService from '../services/DatabaseService';
-import SearchBar from '../components/ui/SearchBar';
 import { EmptyState } from '../components/layout';
 
-// Note: Navigating to 'Reader' which is in BibleStack from TabNavigator requires
-// careful typing or a global nav ref. For simplicity in this demo, we'll assume
-// we can navigate to BibleStack -> Reader.
 type Nav = NativeStackNavigationProp<any>;
 
 export default function SearchScreen() {
@@ -40,7 +37,6 @@ export default function SearchScreen() {
       setHasSearched(false);
       return;
     }
-
     setLoading(true);
     setHasSearched(true);
     const res = await DatabaseService.searchContent(text);
@@ -54,11 +50,7 @@ export default function SearchScreen() {
     if (!book) return;
     navigation.navigate('BibleTab', {
       screen: 'Reader',
-      params: {
-        book,
-        chapter: result.verse.chapter,
-        highlightVerseId: result.verse.id,
-      },
+      params: { book, chapter: result.verse.chapter, highlightVerseId: result.verse.id },
     });
   }, [navigation]);
 
@@ -67,9 +59,24 @@ export default function SearchScreen() {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Búsqueda Profunda</Text>
-        <SearchBar onSearch={handleSearch} />
+        <Text style={styles.title}>Búsqueda</Text>
+        <View style={styles.searchBarWrapper}>
+          <View style={styles.searchIcon}>
+            <SearchIconSmall />
+          </View>
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar versículos y comentarios..."
+            placeholderTextColor={Colors.textMuted}
+            value={query}
+            onChangeText={handleSearch}
+            returnKeyType="search"
+            clearButtonMode="while-editing"
+            autoCorrect={false}
+          />
+        </View>
       </View>
 
       {loading ? (
@@ -81,13 +88,13 @@ export default function SearchScreen() {
         <EmptyState
           emoji="📭"
           title="No hay resultados"
-          subtitle={`No se encontraron versículos ni comentarios para "${query}".`}
+          subtitle={`No se encontraron versículos para "${query}".`}
         />
       ) : !hasSearched ? (
         <EmptyState
           emoji="🔍"
-          title="¿Qué deseas estudiar hoy?"
-          subtitle="Busca palabras clave, temas o frases en toda la Biblia y en los comentarios exegéticos."
+          title="¿Qué deseas estudiar?"
+          subtitle="Busca palabras clave, temas o frases en toda la Biblia."
         />
       ) : (
         <FlatList
@@ -98,15 +105,43 @@ export default function SearchScreen() {
             <ResultRow result={item} onPress={() => handleResultPress(item)} />
           )}
           keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
         />
       )}
     </KeyboardAvoidingView>
   );
 }
 
+function SearchIconSmall() {
+  return (
+    <View>
+      <View
+        style={{
+          width: 16,
+          height: 16,
+          borderRadius: 8,
+          borderWidth: 2,
+          borderColor: Colors.textMuted,
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          bottom: -3,
+          right: -3,
+          width: 6,
+          height: 2,
+          backgroundColor: Colors.textMuted,
+          borderRadius: 2,
+          transform: [{ rotate: '45deg' }],
+        }}
+      />
+    </View>
+  );
+}
+
 function ResultRow({ result, onPress }: { result: SearchResult; onPress: () => void }) {
   const isComment = result.matchType === 'comment';
-
   return (
     <TouchableOpacity style={styles.resultCard} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.resultHeader}>
@@ -119,9 +154,7 @@ function ResultRow({ result, onPress }: { result: SearchResult; onPress: () => v
           {result.verse.bookName} {result.verse.chapter}:{result.verse.verse}
         </Text>
       </View>
-
       <Text style={styles.excerpt}>{result.excerpt}</Text>
-
       {isComment && result.theologian && (
         <Text style={styles.theologian}>— {result.theologian}</Text>
       )}
@@ -137,16 +170,33 @@ const styles = StyleSheet.create({
   header: {
     paddingHorizontal: Spacing.base,
     paddingTop: Spacing.xl,
-    paddingBottom: Spacing.md,
-    backgroundColor: Colors.surfaceElevated,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
+    paddingBottom: Spacing.base,
   },
   title: {
-    fontFamily: Typography.serif.bold,
-    fontSize: FontSizes.xl,
+    fontFamily: Typography.display.bold,
+    fontSize: FontSizes['2xl'],
     color: Colors.textPrimary,
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
+  },
+  searchBarWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.surfaceElevated,
+    borderRadius: Radius.xl,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.md,
+    gap: Spacing.md,
+    ...Shadows.sm,
+  },
+  searchIcon: {
+    flexShrink: 0,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: Typography.sans.regular,
+    fontSize: FontSizes.base,
+    color: Colors.textPrimary,
+    padding: 0,
   },
   center: {
     flex: 1,
@@ -157,20 +207,18 @@ const styles = StyleSheet.create({
     fontFamily: Typography.sans.regular,
     marginTop: Spacing.md,
     color: Colors.textMuted,
+    fontSize: FontSizes.sm,
   },
   list: {
     padding: Spacing.base,
     paddingBottom: Spacing['3xl'],
   },
-
-  // Result Card
   resultCard: {
     backgroundColor: Colors.surfaceElevated,
     padding: Spacing.base,
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
+    ...Shadows.sm,
   },
   resultHeader: {
     flexDirection: 'row',
@@ -185,16 +233,17 @@ const styles = StyleSheet.create({
     borderRadius: Radius.full,
   },
   badgeComment: {
-    backgroundColor: '#dbeafe', // blue-100
+    backgroundColor: '#dbeafe',
   },
   badgeText: {
     fontFamily: Typography.sans.semiBold,
     fontSize: 10,
     color: Colors.accentDark,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   badgeTextComment: {
-    color: '#1e40af', // blue-800
+    color: '#1e40af',
   },
   reference: {
     fontFamily: Typography.sans.semiBold,
