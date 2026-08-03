@@ -24,6 +24,12 @@
     "plugins": [
       "expo-font",
       "expo-sqlite"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "23e767a3-a21f-4bd1-8537-a2f673c48f9e"
+      }
+    },
+    "owner": "esteban77orjuela"
   }
 }
