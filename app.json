@@ -31,6 +31,12 @@
         "projectId": "23e767a3-a21f-4bd1-8537-a2f673c48f9e"
       }
     },
-    "owner": "esteban77orjuela"
+    "owner": "esteban77orjuela",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/23e767a3-a21f-4bd1-8537-a2f673c48f9e"
+    }
   }
 }

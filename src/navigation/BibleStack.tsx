@@ -11,6 +11,7 @@ import HomeScreen from '../screens/bible/HomeScreen';
 import BooksScreen from '../screens/bible/BooksScreen';
 import ChaptersScreen from '../screens/bible/ChaptersScreen';
 import ReaderScreen from '../screens/bible/ReaderScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 
 const Stack = createNativeStackNavigator<BibleStackParamList>();
 
@@ -57,6 +58,11 @@ export default function BibleStack() {
           title: `${route.params.book.abbreviation} ${route.params.chapter}`,
           headerLargeTitle: false,
         })}
+      />
+      <Stack.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ title: 'Ajustes' }}
       />
     </Stack.Navigator>
   );

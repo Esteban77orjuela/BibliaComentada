@@ -64,6 +64,7 @@ export type BibleStackParamList = {
   Books: { testament?: Testament };
   Chapters: { book: Book };
   Reader: { book: Book; chapter: number; highlightVerseId?: string };
+  Settings: undefined;
 };
 
 export type DictionaryStackParamList = {

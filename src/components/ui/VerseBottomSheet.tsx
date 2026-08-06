@@ -193,6 +193,13 @@ export default function VerseBottomSheet({
                 </View>
               ) : theologians.length > 0 ? (
                 <>
+                  <View style={styles.commentsHeader}>
+                    <Text style={styles.commentsTitle}>Comentarios</Text>
+                    <View style={styles.countBadge}>
+                      <Text style={styles.countBadgeText}>{theologians.length}</Text>
+                    </View>
+                  </View>
+
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
@@ -357,6 +364,33 @@ const styles = StyleSheet.create({
   },
 
   // Chips de teólogos
+  commentsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  commentsTitle: {
+    fontFamily: Typography.sans.semiBold,
+    fontSize: FontSizes.sm,
+    color: Colors.textSecondary,
+  },
+  countBadge: {
+    minWidth: 26,
+    height: 22,
+    paddingHorizontal: Spacing.sm,
+    borderRadius: Radius.full,
+    backgroundColor: Colors.accentLight,
+    borderWidth: 1,
+    borderColor: Colors.accentMid,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  countBadgeText: {
+    fontFamily: Typography.sans.bold,
+    fontSize: FontSizes.sm,
+    color: Colors.accentDark,
+  },
   chipsRow: {
     gap: Spacing.sm,
     paddingBottom: Spacing.md,

@@ -113,7 +113,11 @@ export default function HomeScreen() {
             <Text style={styles.welcomeLabel}>BIENVENIDO</Text>
             <Text style={styles.appTitle}>BibliaPlus</Text>
           </View>
-          <TouchableOpacity style={styles.menuButton} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.menuButton}
+            activeOpacity={0.7}
+            onPress={() => navigation.navigate('Settings')}
+          >
             <MenuIcon />
           </TouchableOpacity>
         </Animated.View>
