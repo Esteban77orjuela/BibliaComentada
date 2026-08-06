@@ -3,7 +3,7 @@
 // Pantalla principal: versículo del día + cards AT / NT
 // ============================================================
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BibleStackParamList } from '../../types';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import * as DatabaseService from '../../services/DatabaseService';
 import { Book } from '../../types';
 
@@ -45,6 +46,8 @@ function getDailyVerse() {
 }
 
 export default function HomeScreen() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<Nav>();
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -97,7 +100,10 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={Colors.background} />
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
@@ -118,7 +124,7 @@ export default function HomeScreen() {
             activeOpacity={0.7}
             onPress={() => navigation.navigate('Settings')}
           >
-            <MenuIcon />
+            <MenuIcon color={colors.textPrimary} />
           </TouchableOpacity>
         </Animated.View>
 
@@ -162,7 +168,7 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <View style={styles.testamentIconBg}>
-                <LibraryIcon />
+                <LibraryIcon color={colors.textSecondary} />
               </View>
               <Text style={styles.testamentName}>Antiguo{'\n'}Testamento</Text>
               <Text style={styles.testamentCount}>39 LIBROS</Text>
@@ -175,7 +181,7 @@ export default function HomeScreen() {
               activeOpacity={0.8}
             >
               <View style={styles.testamentIconBg}>
-                <LibraryIcon />
+                <LibraryIcon color={colors.textSecondary} />
               </View>
               <Text style={styles.testamentName}>Nuevo{'\n'}Testamento</Text>
               <Text style={styles.testamentCount}>27 LIBROS</Text>
@@ -220,18 +226,17 @@ const QUICK_BOOKS = [
 
 // ── Íconos SVG inline ──
 
-function MenuIcon() {
+function MenuIcon({ color }: { color: string }) {
   return (
     <View style={{ gap: 5, alignItems: 'flex-end' }}>
-      <View style={{ width: 22, height: 2, backgroundColor: Colors.textPrimary, borderRadius: 2 }} />
-      <View style={{ width: 16, height: 2, backgroundColor: Colors.textPrimary, borderRadius: 2 }} />
-      <View style={{ width: 19, height: 2, backgroundColor: Colors.textPrimary, borderRadius: 2 }} />
+      <View style={{ width: 22, height: 2, backgroundColor: color, borderRadius: 2 }} />
+      <View style={{ width: 16, height: 2, backgroundColor: color, borderRadius: 2 }} />
+      <View style={{ width: 19, height: 2, backgroundColor: color, borderRadius: 2 }} />
     </View>
   );
 }
 
-function LibraryIcon() {
-  const barColor = Colors.textSecondary;
+function LibraryIcon({ color }: { color: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 3 }}>
       {[14, 20, 16, 18, 13].map((h, i) => (
@@ -240,7 +245,7 @@ function LibraryIcon() {
           style={{
             width: 4,
             height: h,
-            backgroundColor: barColor,
+            backgroundColor: color,
             borderRadius: 2,
             opacity: 0.7 + i * 0.06,
           }}
@@ -267,156 +272,157 @@ function BookDecorIcon() {
 
 const CARD_WIDTH = (width - Spacing.base * 2 - Spacing.md) / 2;
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  scrollContent: {
-    paddingBottom: Spacing['3xl'],
-  },
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    scrollContent: {
+      paddingBottom: Spacing['3xl'],
+    },
 
-  // Header
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.md,
-  },
-  welcomeLabel: {
-    fontFamily: Typography.sans.medium,
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  appTitle: {
-    fontFamily: Typography.display.bold,
-    fontSize: FontSizes['2xl'],
-    color: Colors.textPrimary,
-    marginTop: 2,
-  },
-  menuButton: {
-    padding: Spacing.sm,
-  },
+    // Header
+    header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: Spacing.base,
+      paddingTop: Spacing.xl,
+      paddingBottom: Spacing.md,
+    },
+    welcomeLabel: {
+      fontFamily: Typography.sans.medium,
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+    },
+    appTitle: {
+      fontFamily: Typography.display.bold,
+      fontSize: FontSizes['2xl'],
+      color: colors.textPrimary,
+      marginTop: 2,
+    },
+    menuButton: {
+      padding: Spacing.sm,
+    },
 
-  // Versículo del Día
-  dailyCard: {
-    marginHorizontal: Spacing.base,
-    backgroundColor: Colors.darkCard,
-    borderRadius: Radius.xl,
-    padding: Spacing.xl,
-    marginBottom: Spacing.xl,
-    overflow: 'hidden',
-    ...Shadows.dark,
-  },
-  dailyCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.base,
-  },
-  pulseDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.darkCardAccent,
-  },
-  dailyLabel: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.xs,
-    color: Colors.darkCardAccent,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-  },
-  dailyText: {
-    fontFamily: Typography.display.bold,
-    fontSize: FontSizes.lg,
-    color: Colors.darkCardText,
-    lineHeight: 30,
-    marginBottom: Spacing.base,
-  },
-  dailyRef: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.sm,
-    color: Colors.darkCardAccent,
-  },
-  cornerDecor: {
-    position: 'absolute',
-    right: -10,
-    bottom: -10,
-    opacity: 0.25,
-  },
+    // Versículo del Día
+    dailyCard: {
+      marginHorizontal: Spacing.base,
+      backgroundColor: colors.darkCard,
+      borderRadius: Radius.xl,
+      padding: Spacing.xl,
+      marginBottom: Spacing.xl,
+      overflow: 'hidden',
+      ...Shadows.dark,
+    },
+    dailyCardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      marginBottom: Spacing.base,
+    },
+    pulseDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.darkCardAccent,
+    },
+    dailyLabel: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.xs,
+      color: colors.darkCardAccent,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+    },
+    dailyText: {
+      fontFamily: Typography.display.bold,
+      fontSize: FontSizes.lg,
+      color: colors.darkCardText,
+      lineHeight: 30,
+      marginBottom: Spacing.base,
+    },
+    dailyRef: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.sm,
+      color: colors.darkCardAccent,
+    },
+    cornerDecor: {
+      position: 'absolute',
+      right: -10,
+      bottom: -10,
+      opacity: 0.25,
+    },
 
-  // Sección
-  section: {
-    paddingHorizontal: Spacing.base,
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.md,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.base,
-  },
+    // Sección
+    section: {
+      paddingHorizontal: Spacing.base,
+      marginBottom: Spacing.xl,
+    },
+    sectionTitle: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.md,
+      color: colors.textPrimary,
+      marginBottom: Spacing.base,
+    },
 
-  // Cards AT / NT
-  testamentRow: {
-    flexDirection: 'row',
-    gap: Spacing.md,
-  },
-  testamentCard: {
-    width: CARD_WIDTH,
-    backgroundColor: Colors.surfaceElevated,
-    borderRadius: Radius.xl,
-    padding: Spacing.lg,
-    paddingBottom: Spacing.xl,
-    ...Shadows.md,
-  },
-  testamentIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.surface,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.base,
-  },
-  testamentName: {
-    fontFamily: Typography.sans.bold,
-    fontSize: FontSizes.base,
-    color: Colors.textPrimary,
-    lineHeight: 22,
-    marginBottom: Spacing.xs,
-  },
-  testamentCount: {
-    fontFamily: Typography.sans.medium,
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    letterSpacing: 0.8,
-  },
+    // Cards AT / NT
+    testamentRow: {
+      flexDirection: 'row',
+      gap: Spacing.md,
+    },
+    testamentCard: {
+      width: CARD_WIDTH,
+      backgroundColor: colors.surfaceElevated,
+      borderRadius: Radius.xl,
+      padding: Spacing.lg,
+      paddingBottom: Spacing.xl,
+      ...Shadows.md,
+    },
+    testamentIconBg: {
+      width: 48,
+      height: 48,
+      borderRadius: Radius.md,
+      backgroundColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: Spacing.base,
+    },
+    testamentName: {
+      fontFamily: Typography.sans.bold,
+      fontSize: FontSizes.base,
+      color: colors.textPrimary,
+      lineHeight: 22,
+      marginBottom: Spacing.xs,
+    },
+    testamentCount: {
+      fontFamily: Typography.sans.medium,
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+      letterSpacing: 0.8,
+    },
 
-  // Acceso Rápido
-  quickRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: Spacing.sm,
-  },
-  quickChip: {
-    backgroundColor: Colors.surfaceElevated,
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    ...Shadows.sm,
-  },
-  quickChipText: {
-    fontFamily: Typography.sans.medium,
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-  },
-});
+    // Acceso Rápido
+    quickRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'center',
+      gap: Spacing.sm,
+    },
+    quickChip: {
+      backgroundColor: colors.surfaceElevated,
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.full,
+      borderWidth: 1,
+      borderColor: colors.border,
+      ...Shadows.sm,
+    },
+    quickChipText: {
+      fontFamily: Typography.sans.medium,
+      fontSize: FontSizes.sm,
+      color: colors.textSecondary,
+    },
+  });

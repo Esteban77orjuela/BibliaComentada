@@ -3,7 +3,7 @@
 // Barra de búsqueda con debounce integrado
 // ============================================================
 
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   TextInput,
@@ -12,6 +12,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -24,6 +25,8 @@ export default function SearchBar({
   placeholder = 'Buscar versículos, comentarios…',
   debounceMs = 300,
 }: SearchBarProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [value, setValue] = useState('');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -52,7 +55,7 @@ export default function SearchBar({
         value={value}
         onChangeText={handleChange}
         placeholder={placeholder}
-        placeholderTextColor={Colors.textMuted}
+        placeholderTextColor={colors.textMuted}
         returnKeyType="search"
         autoCorrect={false}
         autoCapitalize="none"
@@ -69,43 +72,44 @@ export default function SearchBar({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.md,
-    height: 46,
-    ...Shadows.sm,
-  },
-  icon: {
-    fontSize: 15,
-    marginRight: Spacing.sm,
-  },
-  input: {
-    flex: 1,
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.base,
-    color: Colors.textPrimary,
-    padding: 0,
-  },
-  clearBtn: {
-    marginLeft: Spacing.sm,
-  },
-  clearCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.textMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  clearIcon: {
-    fontSize: 10,
-    color: Colors.surfaceElevated,
-    fontWeight: '700',
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: Radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: Spacing.md,
+      height: 46,
+      ...Shadows.sm,
+    },
+    icon: {
+      fontSize: 15,
+      marginRight: Spacing.sm,
+    },
+    input: {
+      flex: 1,
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.base,
+      color: colors.textPrimary,
+      padding: 0,
+    },
+    clearBtn: {
+      marginLeft: Spacing.sm,
+    },
+    clearCircle: {
+      width: 20,
+      height: 20,
+      borderRadius: Radius.full,
+      backgroundColor: colors.textMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    clearIcon: {
+      fontSize: 10,
+      color: colors.surfaceElevated,
+      fontWeight: '700',
+    },
+  });

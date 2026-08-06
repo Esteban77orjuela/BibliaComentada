@@ -3,10 +3,11 @@
 // Comentario fluido dentro del BottomSheet (sin card envuelto)
 // ============================================================
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Comment } from '../../types';
 import { Colors, Typography, FontSizes, Spacing } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import SimpleHTML from './SimpleHTML';
 
 interface CommentCardProps {
@@ -29,6 +30,8 @@ const THEOLOGIAN_META: Record<string, { dates: string; title: string }> = {
 };
 
 export default function CommentCard({ comment }: CommentCardProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const meta = THEOLOGIAN_META[comment.theologian] ?? {
     dates: '',
     title: 'Teólogo',
@@ -52,25 +55,26 @@ export default function CommentCard({ comment }: CommentCardProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    marginTop: Spacing.sm,
-  },
-  theologianRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  accentLine: {
-    width: 3,
-    height: 32,
-    borderRadius: 2,
-    backgroundColor: Colors.accent,
-  },
-  theologianMeta: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      marginTop: Spacing.sm,
+    },
+    theologianRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      marginBottom: Spacing.md,
+    },
+    accentLine: {
+      width: 3,
+      height: 32,
+      borderRadius: 2,
+      backgroundColor: colors.accent,
+    },
+    theologianMeta: {
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+    },
+  });

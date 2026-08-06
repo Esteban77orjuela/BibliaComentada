@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,11 +10,14 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { DictionaryEntry } from '../../types';
 import { Colors, Typography, FontSizes, Spacing, Radius } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import * as DatabaseService from '../../services/DatabaseService';
 import SearchBar from '../../components/ui/SearchBar';
 import { EmptyState } from '../../components/layout';
 
 export default function DictionaryListScreen({ navigation }: any) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [entries, setEntries] = useState<DictionaryEntry[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +43,7 @@ export default function DictionaryListScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color={Colors.accent} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -88,42 +91,43 @@ export default function DictionaryListScreen({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.background },
-  header: {
-    paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.md,
-    backgroundColor: Colors.surfaceElevated,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  title: {
-    fontFamily: Typography.serif.bold,
-    fontSize: FontSizes.xl,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
-  },
-  list: { padding: Spacing.base, paddingBottom: Spacing['3xl'] },
-  card: {
-    backgroundColor: Colors.surfaceElevated,
-    padding: Spacing.base,
-    borderRadius: Radius.md,
-    marginBottom: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  entryTitle: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.base,
-    color: Colors.accent,
-    marginBottom: Spacing.xs,
-  },
-  entryPreview: {
-    fontFamily: Typography.serif.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    lineHeight: 20,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: colors.background },
+    center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
+    header: {
+      paddingHorizontal: Spacing.base,
+      paddingTop: Spacing.xl,
+      paddingBottom: Spacing.md,
+      backgroundColor: colors.surfaceElevated,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      fontFamily: Typography.serif.bold,
+      fontSize: FontSizes.xl,
+      color: colors.textPrimary,
+      marginBottom: Spacing.md,
+    },
+    list: { padding: Spacing.base, paddingBottom: Spacing['3xl'] },
+    card: {
+      backgroundColor: colors.surfaceElevated,
+      padding: Spacing.base,
+      borderRadius: Radius.md,
+      marginBottom: Spacing.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    entryTitle: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.base,
+      color: colors.accent,
+      marginBottom: Spacing.xs,
+    },
+    entryPreview: {
+      fontFamily: Typography.serif.regular,
+      fontSize: FontSizes.sm,
+      color: colors.textSecondary,
+      lineHeight: 20,
+    },
+  });

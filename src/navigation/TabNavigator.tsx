@@ -4,12 +4,13 @@
 // para control absoluto del centrado y el contenido
 // ============================================================
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator, BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { RootTabParamList } from '../types';
 import { Colors, Typography, FontSizes, Spacing, Shadows } from '../constants/theme';
+import { useTheme } from '../theme/ThemeProvider';
 import BibleStack from './BibleStack';
 import DictionaryStack from './DictionaryStack';
 import ArticlesStack from './ArticlesStack';
@@ -20,8 +21,7 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 
 // ── Íconos SVG minimalistas con View ──
 
-function LibraryIconSVG({ focused }: { focused: boolean }) {
-  const color = focused ? Colors.tabActive : Colors.tabInactive;
+function LibraryIconSVG({ color }: { color: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 2.5 }}>
       {[11, 16, 13, 15, 10].map((h, i) => (
@@ -39,8 +39,7 @@ function LibraryIconSVG({ focused }: { focused: boolean }) {
   );
 }
 
-function SearchIconSVG({ focused }: { focused: boolean }) {
-  const color = focused ? Colors.tabActive : Colors.tabInactive;
+function SearchIconSVG({ color }: { color: string }) {
   return (
     <View>
       <View
@@ -68,8 +67,7 @@ function SearchIconSVG({ focused }: { focused: boolean }) {
   );
 }
 
-function BookmarkIconSVG({ focused }: { focused: boolean }) {
-  const color = focused ? Colors.tabActive : Colors.tabInactive;
+function BookmarkIconSVG({ color, tabBarBg }: { color: string; tabBarBg: string }) {
   return (
     <View
       style={{
@@ -92,15 +90,14 @@ function BookmarkIconSVG({ focused }: { focused: boolean }) {
           borderTopWidth: 6,
           borderLeftColor: 'transparent',
           borderRightColor: 'transparent',
-          borderTopColor: Colors.tabBarBg,
+          borderTopColor: tabBarBg,
         }}
       />
     </View>
   );
 }
 
-function DictIconSVG({ focused }: { focused: boolean }) {
-  const color = focused ? Colors.tabActive : Colors.tabInactive;
+function DictIconSVG({ color }: { color: string }) {
   return (
     <View style={{ gap: 3 }}>
       {[14, 10, 12].map((w, i) => (
@@ -118,8 +115,7 @@ function DictIconSVG({ focused }: { focused: boolean }) {
   );
 }
 
-function ArticlesIconSVG({ focused }: { focused: boolean }) {
-  const color = focused ? Colors.tabActive : Colors.tabInactive;
+function ArticlesIconSVG({ color }: { color: string }) {
   return (
     <View style={{ gap: 2.5 }}>
       <View style={{ width: 16, height: 2.5, backgroundColor: color, borderRadius: 2 }} />
@@ -140,16 +136,35 @@ const TAB_LABELS: Record<string, string> = {
   ArticlesTab: 'Artículos',
 };
 
-const TAB_ICONS: Record<string, (focused: boolean) => React.ReactNode> = {
-  BibleTab: (focused) => <LibraryIconSVG focused={focused} />,
-  SearchTab: (focused) => <SearchIconSVG focused={focused} />,
-  FavoritesTab: (focused) => <BookmarkIconSVG focused={focused} />,
-  DictionariesTab: (focused) => <DictIconSVG focused={focused} />,
-  ArticlesTab: (focused) => <ArticlesIconSVG focused={focused} />,
-};
-
 function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  const tabIcons = useMemo(
+    () =>
+      ({
+        BibleTab: (focused: boolean) => (
+          <LibraryIconSVG color={focused ? colors.tabActive : colors.tabInactive} />
+        ),
+        SearchTab: (focused: boolean) => (
+        <SearchIconSVG color={focused ? colors.tabActive : colors.tabInactive} />
+      ),
+      FavoritesTab: (focused: boolean) => (
+        <BookmarkIconSVG
+          color={focused ? colors.tabActive : colors.tabInactive}
+          tabBarBg={colors.tabBarBg}
+        />
+      ),
+      DictionariesTab: (focused: boolean) => (
+        <DictIconSVG color={focused ? colors.tabActive : colors.tabInactive} />
+      ),
+      ArticlesTab: (focused: boolean) => (
+        <ArticlesIconSVG color={focused ? colors.tabActive : colors.tabInactive} />
+      ),
+      }) as Record<string, (focused: boolean) => React.ReactNode>,
+    [colors]
+  );
 
   return (
     <View
@@ -192,7 +207,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               activeOpacity={0.7}
             >
               <View style={styles.iconWrap}>
-                {TAB_ICONS[route.name](focused)}
+                {tabIcons[route.name](focused)}
               </View>
               <Text
                 style={[styles.tabLabel, focused && styles.tabLabelActive]}
@@ -237,44 +252,45 @@ export default function TabNavigator() {
   );
 }
 
-const styles = StyleSheet.create({
-  barWrapper: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: Spacing.xl,
-  },
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'stretch',
-    height: 62,
-    backgroundColor: Colors.tabBarBg,
-    borderRadius: 31,
-    overflow: 'hidden',
-    ...Shadows.dark,
-    elevation: 16,
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 3,
-  },
-  iconWrap: {
-    width: 36,
-    height: 26,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tabLabel: {
-    fontFamily: Typography.sans.medium,
-    fontSize: 10,
-    color: Colors.tabInactive,
-    letterSpacing: 0.2,
-  },
-  tabLabelActive: {
-    color: Colors.tabActive,
-    fontFamily: Typography.sans.semiBold,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    barWrapper: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: Spacing.xl,
+    },
+    pill: {
+      flexDirection: 'row',
+      alignItems: 'stretch',
+      height: 62,
+      backgroundColor: colors.tabBarBg,
+      borderRadius: 31,
+      overflow: 'hidden',
+      ...Shadows.dark,
+      elevation: 16,
+    },
+    tabItem: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 3,
+    },
+    iconWrap: {
+      width: 36,
+      height: 26,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    tabLabel: {
+      fontFamily: Typography.sans.medium,
+      fontSize: 10,
+      color: colors.tabInactive,
+      letterSpacing: 0.2,
+    },
+    tabLabelActive: {
+      color: colors.tabActive,
+      fontFamily: Typography.sans.semiBold,
+    },
+  });

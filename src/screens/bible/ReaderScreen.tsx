@@ -3,7 +3,7 @@
 // Vista de capítulo — toca versículo → abre BottomSheet
 // ============================================================
 
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import {
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { BibleStackParamList, Verse } from '../../types';
 import { Colors, Typography, FontSizes, Spacing } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import * as DatabaseService from '../../services/DatabaseService';
 import VerseRow from '../../components/ui/VerseRow';
 import VerseBottomSheet from '../../components/ui/VerseBottomSheet';
@@ -23,6 +24,8 @@ import { EmptyState } from '../../components/layout';
 type Route = RouteProp<BibleStackParamList, 'Reader'>;
 
 export default function ReaderScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const route = useRoute<Route>();
   const { book, chapter, highlightVerseId } = route.params;
   const flatListRef = useRef<FlatList>(null);
@@ -77,7 +80,7 @@ export default function ReaderScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.accent} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -131,6 +134,8 @@ function ChapterHeader({
   chapter: number;
   total: number;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.chapterHeader}>
       <Text style={styles.chapterTitle}>
@@ -141,40 +146,42 @@ function ChapterHeader({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.background,
-  },
-  listContent: {
-    paddingTop: Spacing.base,
-    paddingBottom: Spacing['4xl'],
-  },
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.background,
+    },
+    listContent: {
+      paddingTop: Spacing.base,
+      paddingBottom: Spacing['4xl'],
+    },
 
-  // Chapter Header
-  chapterHeader: {
-    paddingHorizontal: Spacing.xl,
-    paddingBottom: Spacing.xl,
-    paddingTop: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-    marginBottom: Spacing.base,
-  },
-  chapterTitle: {
-    fontFamily: Typography.display.bold,
-    fontSize: FontSizes['2xl'],
-    color: Colors.textPrimary,
-    marginBottom: 4,
-  },
-  chapterMeta: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-  },
-});
+    // Chapter Header
+    chapterHeader: {
+      paddingHorizontal: Spacing.xl,
+      paddingBottom: Spacing.xl,
+      paddingTop: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+      marginBottom: Spacing.base,
+    },
+    chapterTitle: {
+      fontFamily: Typography.display.bold,
+      fontSize: FontSizes['2xl'],
+      color: colors.textPrimary,
+      marginBottom: 4,
+    },
+    chapterMeta: {
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+    },
+  });
+

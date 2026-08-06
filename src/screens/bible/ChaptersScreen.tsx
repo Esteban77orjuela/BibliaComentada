@@ -3,7 +3,7 @@
 // Grid de capítulos 4 columnas con celdas premium
 // ============================================================
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { BibleStackParamList } from '../../types';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import * as DatabaseService from '../../services/DatabaseService';
 
 type Route = RouteProp<BibleStackParamList, 'Chapters'>;
@@ -28,6 +29,8 @@ const CELL_GAP = Spacing.sm;
 const CELL_SIZE = (width - Spacing.base * 2 - CELL_GAP * (NUM_COLS - 1)) / NUM_COLS;
 
 export default function ChaptersScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const route = useRoute<Route>();
   const navigation = useNavigation<Nav>();
   const { book } = route.params;
@@ -47,7 +50,7 @@ export default function ChaptersScreen() {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={Colors.accent} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -83,66 +86,67 @@ export default function ChaptersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  loadingContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: Colors.background,
-  },
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    loadingContainer: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: colors.background,
+    },
 
-  // Book header
-  bookHeader: {
-    paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.base,
-    paddingBottom: Spacing.xl,
-  },
-  bookHeaderLabel: {
-    fontFamily: Typography.sans.medium,
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    marginBottom: Spacing.xs,
-  },
-  bookHeaderName: {
-    fontFamily: Typography.display.bold,
-    fontSize: FontSizes['2xl'],
-    color: Colors.textPrimary,
-    lineHeight: 36,
-  },
-  bookHeaderMeta: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
+    // Book header
+    bookHeader: {
+      paddingHorizontal: Spacing.base,
+      paddingTop: Spacing.base,
+      paddingBottom: Spacing.xl,
+    },
+    bookHeaderLabel: {
+      fontFamily: Typography.sans.medium,
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+      letterSpacing: 1.5,
+      textTransform: 'uppercase',
+      marginBottom: Spacing.xs,
+    },
+    bookHeaderName: {
+      fontFamily: Typography.display.bold,
+      fontSize: FontSizes['2xl'],
+      color: colors.textPrimary,
+      lineHeight: 36,
+    },
+    bookHeaderMeta: {
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.sm,
+      color: colors.textMuted,
+      marginTop: Spacing.xs,
+    },
 
-  // Grid
-  grid: {
-    paddingHorizontal: Spacing.base,
-    paddingBottom: Spacing['3xl'],
-  },
-  row: {
-    gap: CELL_GAP,
-    marginBottom: CELL_GAP,
-  },
-  chapterCell: {
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-    borderRadius: Radius.lg,
-    backgroundColor: Colors.surfaceElevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    ...Shadows.sm,
-  },
-  chapterNumber: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.md,
-    color: Colors.textPrimary,
-  },
-});
+    // Grid
+    grid: {
+      paddingHorizontal: Spacing.base,
+      paddingBottom: Spacing['3xl'],
+    },
+    row: {
+      gap: CELL_GAP,
+      marginBottom: CELL_GAP,
+    },
+    chapterCell: {
+      width: CELL_SIZE,
+      height: CELL_SIZE,
+      borderRadius: Radius.lg,
+      backgroundColor: colors.surfaceElevated,
+      alignItems: 'center',
+      justifyContent: 'center',
+      ...Shadows.sm,
+    },
+    chapterNumber: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.md,
+      color: colors.textPrimary,
+    },
+  });

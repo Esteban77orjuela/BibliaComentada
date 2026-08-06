@@ -1,8 +1,34 @@
 // ============================================================
 // BibliaPlus Pro — Design System / Theme  (Redesign 2026)
+// Paletas Claro (pergamino) y Oscuro (cálido) + tokens estáticos
 // ============================================================
 
-export const Colors = {
+export type Colors = {
+  background: string;
+  surface: string;
+  surfaceElevated: string;
+  surfaceCard: string;
+  border: string;
+  borderStrong: string;
+  textPrimary: string;
+  textSecondary: string;
+  textMuted: string;
+  textInverse: string;
+  accent: string;
+  accentDark: string;
+  accentLight: string;
+  accentMid: string;
+  darkCard: string;
+  darkCardText: string;
+  darkCardAccent: string;
+  tabBarBg: string;
+  tabActive: string;
+  tabInactive: string;
+  overlay: string;
+  highlightBg: string;
+};
+
+export const lightColors: Colors = {
   // Backgrounds — cálido pergamino
   background: '#F5F0E8',        // pergamino suave
   surface: '#EDE7D9',           // pergamino oscuro
@@ -36,7 +62,43 @@ export const Colors = {
   // Overlay
   overlay: 'rgba(26, 20, 16, 0.55)',
   highlightBg: '#FBF3E2',
-} as const;
+};
+
+export const darkColors: Colors = {
+  // Backgrounds — negro cálido
+  background: '#14110E',        // fondo principal
+  surface: '#1E1A15',           // pergamino oscuro
+  surfaceElevated: '#262119',   // elevado
+  surfaceCard: '#211C15',       // cards
+  border: '#373128',            // borde
+  borderStrong: '#4A4237',      // borde más oscuro
+
+  // Texto — crema
+  textPrimary: '#F1E9DA',       // crema principal
+  textSecondary: '#C8BFAE',     // crema suave
+  textMuted: '#8D8374',         // crema apagada
+  textInverse: '#14110E',
+
+  // Accent — Dorado brillante
+  accent: '#D3A44E',            // dorado principal
+  accentDark: '#B98A33',        // dorado oscuro
+  accentLight: '#2C2418',       // dorado muy oscuro
+  accentMid: '#8A6A2F',         // dorado medio
+
+  // Dark Card — casi negro (para contraste sobre oscuro)
+  darkCard: '#0E0C0A',          // más oscuro que el fondo
+  darkCardText: '#F5EDD6',      // crema sobre oscuro
+  darkCardAccent: '#E8A53A',    // naranja dorado sobre oscuro
+
+  // Tab Bar
+  tabBarBg: '#0E0C0A',          // casi negro
+  tabActive: '#F1E9DA',         // crema activo
+  tabInactive: '#6E675C',       // gris apagado
+
+  // Overlay
+  overlay: 'rgba(0, 0, 0, 0.6)',
+  highlightBg: '#2C2418',
+};
 
 export const Typography = {
   // Display serif — Playfair Display para títulos grandes

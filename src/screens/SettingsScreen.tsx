@@ -1,12 +1,13 @@
 // ============================================================
 // BibliaPlus Pro — SettingsScreen
-// Ajustes: buscar actualizaciones por OTA (expo-updates)
+// Ajustes: apariencia (tema) + buscar actualizaciones por OTA
 // ============================================================
 
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import * as Updates from 'expo-updates';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../constants/theme';
+import { useTheme, ThemePreference } from '../theme/ThemeProvider';
 
 type UpdateStatus =
   | 'idle'
@@ -18,7 +19,15 @@ type UpdateStatus =
   | 'disabled'
   | 'error';
 
+const THEME_OPTIONS: { value: ThemePreference; label: string }[] = [
+  { value: 'light', label: 'Claro' },
+  { value: 'dark', label: 'Oscuro' },
+  { value: 'system', label: 'Sistema' },
+];
+
 export default function SettingsScreen() {
+  const { colors, isDark, preference, setPreference } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [status, setStatus] = useState<UpdateStatus>('idle');
 
   const checkForUpdates = async () => {
@@ -78,12 +87,52 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      {/* ── Apariencia ── */}
+      <Text style={styles.sectionTitle}>Apariencia</Text>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.iconBg}>
+            <ThemeIcon color={colors.accent} />
+          </View>
+          <View style={styles.cardHeaderText}>
+            <Text style={styles.cardTitle}>Modo de la app</Text>
+            <Text style={styles.cardSubtitle}>
+              {preference === 'system'
+                ? 'Sigue el tema de tu teléfono'
+                : preference === 'dark'
+                ? 'Tema oscuro activo'
+                : 'Tema claro activo'}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.segmentRow}>
+          {THEME_OPTIONS.map((opt) => {
+            const selected = preference === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[styles.segment, selected && styles.segmentSelected]}
+                onPress={() => setPreference(opt.value)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[styles.segmentText, selected && styles.segmentTextSelected]}
+                >
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
       {/* ── Actualización ── */}
       <Text style={styles.sectionTitle}>Actualización</Text>
       <View style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.iconBg}>
-            <UpdateIcon />
+            <UpdateIcon color={colors.accent} />
           </View>
           <View style={styles.cardHeaderText}>
             <Text style={styles.cardTitle}>Buscar actualizaciones</Text>
@@ -93,7 +142,7 @@ export default function SettingsScreen() {
 
         <View style={styles.statusRow}>
           {busy ? (
-            <ActivityIndicator size="small" color={Colors.accent} />
+            <ActivityIndicator size="small" color={colors.accent} />
           ) : (
             <View style={[styles.statusDot, status === 'upToDate' && styles.statusDotOk]} />
           )}
@@ -125,26 +174,91 @@ export default function SettingsScreen() {
       {/* ── Información ── */}
       <Text style={styles.sectionTitle}>Información</Text>
       <View style={styles.card}>
-        <InfoRow label="Versión" value={Updates.runtimeVersion ?? '—'} />
-        <InfoRow label="Canal" value={Updates.channel ?? '—'} />
-        <InfoRow label="Actualización actual" value={createdAt ?? 'Integrada en la app'} last />
+        <InfoRow colors={colors} label="Versión" value={Updates.runtimeVersion ?? '—'} />
+        <InfoRow colors={colors} label="Canal" value={Updates.channel ?? '—'} />
+        <InfoRow
+          colors={colors}
+          label="Actualización actual"
+          value={createdAt ?? 'Integrada en la app'}
+          last
+        />
       </View>
     </ScrollView>
   );
 }
 
-function UpdateIcon() {
+function ThemeIcon({ color }: { color: string }) {
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2.5, borderColor: Colors.accent }} />
-      <View style={{ position: 'absolute', width: 2.5, height: 8, backgroundColor: Colors.accent, borderRadius: 1.5, marginTop: -2 }} />
-      <View style={styles.chevronLeft} />
-      <View style={styles.chevronRight} />
+      <View
+        style={{
+          width: 18,
+          height: 18,
+          borderRadius: 9,
+          borderWidth: 2.5,
+          borderColor: color,
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          width: 7,
+          height: 9,
+          borderRadius: 2,
+          backgroundColor: color,
+          right: 1.5,
+          top: 1.5,
+        }}
+      />
     </View>
   );
 }
 
-function InfoRow({ label, value, last }: { label: string; value: string; last?: boolean }) {
+function UpdateIcon({ color }: { color: string }) {
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 18, height: 18, borderRadius: 9, borderWidth: 2.5, borderColor: color }} />
+      <View style={{ position: 'absolute', width: 2.5, height: 8, backgroundColor: color, borderRadius: 1.5, marginTop: -2 }} />
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 1,
+          left: 2,
+          width: 6,
+          height: 2.5,
+          backgroundColor: color,
+          borderRadius: 1.5,
+          transform: [{ rotate: '45deg' }],
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 1,
+          right: 2,
+          width: 6,
+          height: 2.5,
+          backgroundColor: color,
+          borderRadius: 1.5,
+          transform: [{ rotate: '-45deg' }],
+        }}
+      />
+    </View>
+  );
+}
+
+function InfoRow({
+  colors,
+  label,
+  value,
+  last,
+}: {
+  colors: Colors;
+  label: string;
+  value: string;
+  last?: boolean;
+}) {
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={[styles.infoRow, !last && styles.infoRowBorder]}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -155,139 +269,146 @@ function InfoRow({ label, value, last }: { label: string; value: string; last?: 
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.md,
-  },
-  sectionTitle: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.md,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.base,
-  },
-  card: {
-    backgroundColor: Colors.surfaceCard,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    padding: Spacing.lg,
-    ...Shadows.sm,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.base,
-    marginBottom: Spacing.base,
-  },
-  iconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: Radius.md,
-    backgroundColor: Colors.accentLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cardHeaderText: {
-    flex: 1,
-  },
-  cardTitle: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.base,
-    color: Colors.textPrimary,
-  },
-  cardSubtitle: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.sm,
-    backgroundColor: Colors.background,
-    borderRadius: Radius.md,
-    paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.base,
-    minHeight: 44,
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.accent,
-  },
-  statusDotOk: {
-    backgroundColor: '#4CAF50',
-  },
-  statusText: {
-    flex: 1,
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    lineHeight: 19,
-  },
-  primaryButton: {
-    backgroundColor: Colors.accent,
-    borderRadius: Radius.md,
-    paddingVertical: Spacing.base,
-    alignItems: 'center',
-  },
-  primaryButtonDisabled: {
-    opacity: 0.6,
-  },
-  primaryButtonText: {
-    fontFamily: Typography.sans.bold,
-    fontSize: FontSizes.base,
-    color: Colors.textInverse,
-    letterSpacing: 0.3,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: Spacing.base,
-  },
-  infoRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  infoLabel: {
-    fontFamily: Typography.sans.medium,
-    fontSize: FontSizes.sm,
-    color: Colors.textMuted,
-  },
-  infoValue: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.sm,
-    color: Colors.textPrimary,
-    flexShrink: 1,
-    marginLeft: Spacing.md,
-    textAlign: 'right',
-  },
-  chevronLeft: {
-    position: 'absolute',
-    bottom: 1,
-    left: 2,
-    width: 6,
-    height: 2.5,
-    backgroundColor: Colors.accent,
-    borderRadius: 1.5,
-    transform: [{ rotate: '45deg' }],
-  },
-  chevronRight: {
-    position: 'absolute',
-    bottom: 1,
-    right: 2,
-    width: 6,
-    height: 2.5,
-    backgroundColor: Colors.accent,
-    borderRadius: 1.5,
-    transform: [{ rotate: '-45deg' }],
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+      paddingHorizontal: Spacing.base,
+      paddingTop: Spacing.md,
+    },
+    sectionTitle: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.md,
+      color: colors.textPrimary,
+      marginBottom: Spacing.sm,
+      marginTop: Spacing.base,
+    },
+    card: {
+      backgroundColor: colors.surfaceCard,
+      borderRadius: Radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: Spacing.lg,
+      ...Shadows.sm,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.base,
+      marginBottom: Spacing.base,
+    },
+    iconBg: {
+      width: 44,
+      height: 44,
+      borderRadius: Radius.md,
+      backgroundColor: colors.accentLight,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    cardHeaderText: {
+      flex: 1,
+    },
+    cardTitle: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.base,
+      color: colors.textPrimary,
+    },
+    cardSubtitle: {
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.sm,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    segmentRow: {
+      flexDirection: 'row',
+      backgroundColor: colors.background,
+      borderRadius: Radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: Spacing.xs,
+      gap: Spacing.xs,
+    },
+    segment: {
+      flex: 1,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.md - 2,
+      alignItems: 'center',
+    },
+    segmentSelected: {
+      backgroundColor: colors.accent,
+    },
+    segmentText: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.sm,
+      color: colors.textSecondary,
+    },
+    segmentTextSelected: {
+      color: colors.textInverse,
+    },
+    statusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: Spacing.sm,
+      backgroundColor: colors.background,
+      borderRadius: Radius.md,
+      paddingHorizontal: Spacing.base,
+      paddingVertical: Spacing.sm,
+      marginBottom: Spacing.base,
+      minHeight: 44,
+    },
+    statusDot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: colors.accent,
+    },
+    statusDotOk: {
+      backgroundColor: '#4CAF50',
+    },
+    statusText: {
+      flex: 1,
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.sm,
+      color: colors.textSecondary,
+      lineHeight: 19,
+    },
+    primaryButton: {
+      backgroundColor: colors.accent,
+      borderRadius: Radius.md,
+      paddingVertical: Spacing.base,
+      alignItems: 'center',
+    },
+    primaryButtonDisabled: {
+      opacity: 0.6,
+    },
+    primaryButtonText: {
+      fontFamily: Typography.sans.bold,
+      fontSize: FontSizes.base,
+      color: colors.textInverse,
+      letterSpacing: 0.3,
+    },
+    infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingVertical: Spacing.base,
+    },
+    infoRowBorder: {
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    infoLabel: {
+      fontFamily: Typography.sans.medium,
+      fontSize: FontSizes.sm,
+      color: colors.textMuted,
+    },
+    infoValue: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.sm,
+      color: colors.textPrimary,
+      flexShrink: 1,
+      marginLeft: Spacing.md,
+      textAlign: 'right',
+    },
+  });

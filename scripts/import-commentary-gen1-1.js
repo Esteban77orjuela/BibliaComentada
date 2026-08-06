@@ -84,6 +84,17 @@ function htmlToJSON(html) {
   return JSON.stringify(paragraphs);
 }
 
+function decodeEntities(text) {
+  return text
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#0*39;/g, "'")
+    .replace(/\u200B|\u200C|\u200D/g, '');
+}
+
 function parseInline(text) {
   const segments = [];
   let i = 0;
@@ -99,11 +110,17 @@ function parseInline(text) {
     if (closeIdx === -1) { segments.push(text.slice(i)); break; }
     const raw = text.slice(i + 1, closeIdx);
     const tagName = raw.split(/\s/)[0].toLowerCase();
+
     if (tagName === 'strong' || tagName === 'b') {
       const endTag = `</${tagName}>`;
       const end = text.indexOf(endTag, closeIdx + 1);
       const inner = end !== -1 ? text.slice(closeIdx + 1, end) : text.slice(closeIdx + 1);
-      segments.push(['b', inner]);
+      const parsed = cleanSegments(parseInline(decodeEntities(inner)));
+      if (parsed.length === 1 && typeof parsed[0] === 'string') {
+        segments.push(['b', parsed[0]]);
+      } else if (parsed.length > 0) {
+        segments.push(['b', parsed]);
+      }
       i = end !== -1 ? end + endTag.length : text.length;
       continue;
     }
@@ -111,7 +128,12 @@ function parseInline(text) {
       const endTag = `</${tagName}>`;
       const end = text.indexOf(endTag, closeIdx + 1);
       const inner = end !== -1 ? text.slice(closeIdx + 1, end) : text.slice(closeIdx + 1);
-      segments.push(['i', inner]);
+      const parsed = cleanSegments(parseInline(decodeEntities(inner)));
+      if (parsed.length === 1 && typeof parsed[0] === 'string') {
+        segments.push(['i', parsed[0]]);
+      } else if (parsed.length > 0) {
+        segments.push(['i', parsed]);
+      }
       i = end !== -1 ? end + endTag.length : text.length;
       continue;
     }
@@ -122,7 +144,34 @@ function parseInline(text) {
     }
     i = closeIdx + 1;
   }
-  return segments;
+  return cleanSegments(segments);
+}
+
+function cleanSegments(segs) {
+  const out = [];
+  for (const s of segs) {
+    if (typeof s === 'string') {
+      if (!s.trim()) continue;
+      out.push(s);
+    } else {
+      const inner = s[1];
+      const isEmpty = Array.isArray(inner) ? inner.length === 0 : !inner.trim();
+      if (isEmpty) continue;
+      out.push(s);
+    }
+  }
+  const merged = [];
+  for (const s of out) {
+    const last = merged[merged.length - 1];
+    if (typeof s === 'string' && typeof last === 'string') {
+      merged[merged.length - 1] = last + s;
+    } else if (Array.isArray(s) && Array.isArray(last) && last[0] === s[0]) {
+      merged[merged.length - 1] = [s[0], last[1] + (typeof s[1] === 'string' ? s[1] : '')];
+    } else {
+      merged.push(s);
+    }
+  }
+  return merged;
 }
 
 function generateId(theologian) {
@@ -222,7 +271,7 @@ async function main() {
   }
 
   db.run('CREATE TABLE IF NOT EXISTS _metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
-  db.run("INSERT OR REPLACE INTO _metadata (key, value) VALUES ('db_version', '4')");
+  db.run("INSERT OR REPLACE INTO _metadata (key, value) VALUES ('db_version', '5')");
   const today = new Date().toISOString().split('T')[0];
   db.run('INSERT OR REPLACE INTO _metadata (key, value) VALUES (?, ?)', ['updated_at', today]);
 
@@ -231,7 +280,7 @@ async function main() {
 
   console.log(`\nDone: ${imported} imported, ${errors} errors`);
   console.log(`DB size: ${(outBuffer.length / 1024 / 1024).toFixed(1)} MB`);
-  console.log(`DB version: 4`);
+  console.log(`DB version: 5`);
 
   db.close();
 }

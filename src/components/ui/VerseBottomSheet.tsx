@@ -4,7 +4,7 @@
 // Teólogos en scroll horizontal · comentario fluido
 // ============================================================
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import {
 } from 'react-native';
 import { Verse, Comment } from '../../types';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 import * as DatabaseService from '../../services/DatabaseService';
 import * as FavoritesStore from '../../store/FavoritesStore';
 import SimpleHTML from './SimpleHTML';
@@ -44,6 +45,8 @@ export default function VerseBottomSheet({
   visible,
   onClose,
 }: VerseBottomSheetProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
 
@@ -175,7 +178,7 @@ export default function VerseBottomSheet({
                   onPress={handleFavorite}
                   activeOpacity={0.7}
                 >
-                  <BookmarkIcon filled={isFavorite} />
+                  <BookmarkIcon filled={isFavorite} color={colors.accent} background={colors.background} muted={colors.textMuted} />
                 </TouchableOpacity>
               </View>
 
@@ -188,7 +191,7 @@ export default function VerseBottomSheet({
               {/* Chips de teólogos */}
               {loading ? (
                 <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color={Colors.accent} />
+                  <ActivityIndicator size="small" color={colors.accent} />
                   <Text style={styles.loadingText}>Cargando comentarios…</Text>
                 </View>
               ) : theologians.length > 0 ? (
@@ -253,16 +256,26 @@ export default function VerseBottomSheet({
   );
 }
 
-function BookmarkIcon({ filled }: { filled: boolean }) {
+function BookmarkIcon({
+  filled,
+  color,
+  background,
+  muted,
+}: {
+  filled: boolean;
+  color: string;
+  background: string;
+  muted: string;
+}) {
   return (
     <View
       style={{
         width: 22,
         height: 26,
         borderWidth: 2,
-        borderColor: filled ? Colors.accent : Colors.textMuted,
+        borderColor: filled ? color : muted,
         borderRadius: 3,
-        backgroundColor: filled ? Colors.accent : 'transparent',
+        backgroundColor: filled ? color : 'transparent',
         alignItems: 'center',
         justifyContent: 'flex-end',
         overflow: 'hidden',
@@ -278,7 +291,7 @@ function BookmarkIcon({ filled }: { filled: boolean }) {
           borderTopWidth: 8,
           borderLeftColor: 'transparent',
           borderRightColor: 'transparent',
-          borderTopColor: Colors.background,
+          borderTopColor: background,
           position: 'absolute',
           bottom: 0,
         }}
@@ -287,10 +300,11 @@ function BookmarkIcon({ filled }: { filled: boolean }) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: Colors.overlay,
+    backgroundColor: colors.overlay,
   },
   sheet: {
     position: 'absolute',
@@ -298,7 +312,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: SHEET_HEIGHT,
-    backgroundColor: Colors.surfaceElevated,
+    backgroundColor: colors.surfaceElevated,
     borderTopLeftRadius: Radius['2xl'],
     borderTopRightRadius: Radius['2xl'],
     ...Shadows.dark,
@@ -307,7 +321,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
     alignSelf: 'center',
     marginTop: Spacing.md,
     marginBottom: Spacing.xs,
@@ -328,7 +342,7 @@ const styles = StyleSheet.create({
   verseRef: {
     fontFamily: Typography.sans.semiBold,
     fontSize: FontSizes.sm,
-    color: Colors.accent,
+    color: colors.accent,
     letterSpacing: 0.5,
   },
   bookmarkBtn: {
@@ -339,14 +353,14 @@ const styles = StyleSheet.create({
   verseText: {
     fontFamily: Typography.display.bold,
     fontSize: FontSizes.xl,
-    color: Colors.textPrimary,
+    color: colors.textPrimary,
     lineHeight: 34,
     marginBottom: Spacing.xl,
   },
 
   divider: {
     height: 1,
-    backgroundColor: Colors.border,
+    backgroundColor: colors.border,
     marginBottom: Spacing.lg,
   },
 
@@ -360,7 +374,7 @@ const styles = StyleSheet.create({
   loadingText: {
     fontFamily: Typography.sans.regular,
     fontSize: FontSizes.sm,
-    color: Colors.textMuted,
+    color: colors.textMuted,
   },
 
   // Chips de teólogos
@@ -373,23 +387,23 @@ const styles = StyleSheet.create({
   commentsTitle: {
     fontFamily: Typography.sans.semiBold,
     fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   countBadge: {
     minWidth: 26,
     height: 22,
     paddingHorizontal: Spacing.sm,
     borderRadius: Radius.full,
-    backgroundColor: Colors.accentLight,
+    backgroundColor: colors.accentLight,
     borderWidth: 1,
-    borderColor: Colors.accentMid,
+    borderColor: colors.accentMid,
     alignItems: 'center',
     justifyContent: 'center',
   },
   countBadgeText: {
     fontFamily: Typography.sans.bold,
     fontSize: FontSizes.sm,
-    color: Colors.accentDark,
+    color: colors.accentDark,
   },
   chipsRow: {
     gap: Spacing.sm,
@@ -400,21 +414,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.base,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.full,
-    backgroundColor: Colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1.5,
-    borderColor: Colors.border,
+    borderColor: colors.border,
   },
   chipSelected: {
-    backgroundColor: Colors.darkCard,
-    borderColor: Colors.darkCard,
+    backgroundColor: colors.darkCard,
+    borderColor: colors.darkCard,
   },
   chipText: {
     fontFamily: Typography.sans.semiBold,
     fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
+    color: colors.textSecondary,
   },
   chipTextSelected: {
-    color: Colors.textInverse,
+    color: colors.textInverse,
   },
 
   // Comentario
@@ -429,7 +443,7 @@ const styles = StyleSheet.create({
   noCommentsText: {
     fontFamily: Typography.serif.italic,
     fontSize: FontSizes.base,
-    color: Colors.textMuted,
+    color: colors.textMuted,
     lineHeight: 24,
   },
 });

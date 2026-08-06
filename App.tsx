@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { openDatabaseAsync, importDatabaseFromAssetAsync } from 'expo-sqlite';
@@ -25,6 +25,7 @@ import {
 import TabNavigator from './src/navigation/TabNavigator';
 import * as DatabaseService from './src/services/DatabaseService';
 import { Colors, Typography } from './src/constants/theme';
+import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
 
 const MIGRATIONS = `PRAGMA journal_mode = WAL;
 CREATE TABLE IF NOT EXISTS comment_authors (
@@ -61,7 +62,9 @@ CREATE TABLE IF NOT EXISTS _metadata (
   value TEXT NOT NULL
 );`;
 
-export default function App() {
+function AppContent() {
+  const { colors, isDark } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
@@ -92,7 +95,7 @@ export default function App() {
         const verRow = await db.getFirstAsync<{ value: string }>(
           "SELECT value FROM _metadata WHERE key = 'db_version'"
         );
-        const needsReimport = !verRow || verRow.value !== '4';
+        const needsReimport = !verRow || verRow.value !== '5';
 
         if (needsReimport) {
           await db.closeAsync();
@@ -152,7 +155,7 @@ export default function App() {
   if (!fontsLoaded) {
     return (
       <View style={styles.splash}>
-        <ActivityIndicator size="large" color={Colors.accent} />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
@@ -169,7 +172,7 @@ export default function App() {
   if (state === 'loading') {
     return (
       <View style={styles.splash}>
-        <ActivityIndicator size="large" color={Colors.accent} />
+        <ActivityIndicator size="large" color={colors.accent} />
         <Text style={styles.loadingText}>Cargando la Biblia…</Text>
         {loadingTimeout && (
           <TouchableOpacity style={styles.retryButton} onPress={resetApp}>
@@ -182,6 +185,10 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar
+        barStyle={isDark ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <NavigationContainer>
           <TabNavigator />
@@ -191,44 +198,53 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  splash: {
-    flex: 1,
-    backgroundColor: Colors.background,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontFamily: Typography.sans.regular,
-    fontSize: 14,
-    color: Colors.textMuted,
-  },
-  errorIcon: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  errorText: {
-    fontFamily: Typography.sans.regular,
-    fontSize: 14,
-    color: Colors.accent,
-    textAlign: 'center',
-    paddingHorizontal: 24,
-  },
-  retryButton: {
-    marginTop: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    backgroundColor: Colors.accent,
-    borderRadius: 8,
-  },
-  retryText: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: 14,
-    color: '#FFFFFF',
-  },
-});
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    splash: {
+      flex: 1,
+      backgroundColor: colors.background,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    loadingText: {
+      marginTop: 12,
+      fontFamily: Typography.sans.regular,
+      fontSize: 14,
+      color: colors.textMuted,
+    },
+    errorIcon: {
+      fontSize: 48,
+      marginBottom: 16,
+    },
+    errorText: {
+      fontFamily: Typography.sans.regular,
+      fontSize: 14,
+      color: colors.accent,
+      textAlign: 'center',
+      paddingHorizontal: 24,
+    },
+    retryButton: {
+      marginTop: 24,
+      paddingHorizontal: 24,
+      paddingVertical: 10,
+      backgroundColor: colors.accent,
+      borderRadius: 8,
+    },
+    retryText: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: 14,
+      color: '#FFFFFF',
+    },
+  });

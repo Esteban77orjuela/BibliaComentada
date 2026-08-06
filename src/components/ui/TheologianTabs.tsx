@@ -3,9 +3,10 @@
 // Tabs horizontales scrollables para seleccionar teólogos
 // ============================================================
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ScrollView, TouchableOpacity, Text, StyleSheet, View } from 'react-native';
 import { Colors, Typography, FontSizes, Spacing, Radius } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface TheologianTabsProps {
   theologians: string[];
@@ -30,6 +31,9 @@ export default function TheologianTabs({
   selected,
   onSelect,
 }: TheologianTabsProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <ScrollView
       horizontal
@@ -39,7 +43,7 @@ export default function TheologianTabs({
     >
       {theologians.map(theologian => {
         const isSelected = theologian === selected;
-        const colors = THEOLOGIAN_COLORS[theologian] ?? { bg: Colors.accentLight, text: Colors.accent };
+        const tint = THEOLOGIAN_COLORS[theologian] ?? { bg: colors.accentLight, text: colors.accent };
         const initials = THEOLOGIAN_INITIALS[theologian] ?? theologian.slice(0, 2).toUpperCase();
 
         return (
@@ -48,12 +52,12 @@ export default function TheologianTabs({
             onPress={() => onSelect(theologian)}
             style={[
               styles.tab,
-              isSelected && { backgroundColor: colors.bg, borderColor: colors.text + '44' },
+              isSelected && { backgroundColor: tint.bg, borderColor: tint.text + '44' },
               !isSelected && styles.tabInactive,
             ]}
             activeOpacity={0.75}
           >
-            <View style={[styles.avatar, isSelected && { backgroundColor: colors.text }]}>
+            <View style={[styles.avatar, isSelected && { backgroundColor: tint.text }]}>
               <Text style={[styles.avatarText, isSelected && styles.avatarTextSelected]}>
                 {initials}
               </Text>
@@ -61,7 +65,7 @@ export default function TheologianTabs({
             <Text
               style={[
                 styles.tabLabel,
-                isSelected && { color: colors.text, fontFamily: Typography.sans.semiBold },
+                isSelected && { color: tint.text, fontFamily: Typography.sans.semiBold },
               ]}
               numberOfLines={1}
             >
@@ -74,50 +78,51 @@ export default function TheologianTabs({
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: {
-    marginTop: Spacing.md,
-  },
-  scrollContent: {
-    paddingHorizontal: Spacing.base,
-    gap: Spacing.sm,
-    paddingBottom: 4,
-  },
-  tab: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: Radius.full,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    gap: Spacing.sm,
-    backgroundColor: Colors.surface,
-  },
-  tabInactive: {
-    backgroundColor: Colors.surface,
-    borderColor: Colors.border,
-  },
-  avatar: {
-    width: 22,
-    height: 22,
-    borderRadius: Radius.full,
-    backgroundColor: Colors.border,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarText: {
-    fontSize: 9,
-    fontFamily: Typography.sans.bold,
-    color: Colors.textSecondary,
-  },
-  avatarTextSelected: {
-    color: Colors.surfaceElevated,
-  },
-  tabLabel: {
-    fontFamily: Typography.sans.medium,
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    maxWidth: 120,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    scroll: {
+      marginTop: Spacing.md,
+    },
+    scrollContent: {
+      paddingHorizontal: Spacing.base,
+      gap: Spacing.sm,
+      paddingBottom: 4,
+    },
+    tab: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      borderRadius: Radius.full,
+      borderWidth: 1.5,
+      borderColor: colors.border,
+      gap: Spacing.sm,
+      backgroundColor: colors.surface,
+    },
+    tabInactive: {
+      backgroundColor: colors.surface,
+      borderColor: colors.border,
+    },
+    avatar: {
+      width: 22,
+      height: 22,
+      borderRadius: Radius.full,
+      backgroundColor: colors.border,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    avatarText: {
+      fontSize: 9,
+      fontFamily: Typography.sans.bold,
+      color: colors.textSecondary,
+    },
+    avatarTextSelected: {
+      color: colors.surfaceElevated,
+    },
+    tabLabel: {
+      fontFamily: Typography.sans.medium,
+      fontSize: FontSizes.sm,
+      color: colors.textSecondary,
+      maxWidth: 120,
+    },
+  });

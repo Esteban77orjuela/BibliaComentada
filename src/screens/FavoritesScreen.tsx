@@ -2,7 +2,7 @@
 // BibliaPlus Pro — FavoritesScreen  (Redesign 2026)
 // ============================================================
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,15 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Favorite } from '../types';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../constants/theme';
+import { useTheme } from '../theme/ThemeProvider';
 import * as FavoritesStore from '../store/FavoritesStore';
 import { EmptyState } from '../components/layout';
 
 type Nav = NativeStackNavigationProp<any>;
 
 export default function FavoritesScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const navigation = useNavigation<Nav>();
   const [favorites, setFavorites] = useState<Favorite[]>([]);
 
@@ -108,6 +111,8 @@ function FavoriteCard({
   onPress: () => void;
   onRemove: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.75}>
       <View style={styles.cardHeader}>
@@ -116,8 +121,8 @@ function FavoriteCard({
         </Text>
         <TouchableOpacity style={styles.removeBtn} onPress={onRemove} hitSlop={12}>
           <View style={styles.removeIcon}>
-            <View style={{ width: 12, height: 2, backgroundColor: Colors.textMuted, borderRadius: 1, transform: [{ rotate: '45deg' }], position: 'absolute' }} />
-            <View style={{ width: 12, height: 2, backgroundColor: Colors.textMuted, borderRadius: 1, transform: [{ rotate: '-45deg' }], position: 'absolute' }} />
+            <View style={{ width: 12, height: 2, backgroundColor: colors.textMuted, borderRadius: 1, transform: [{ rotate: '45deg' }], position: 'absolute' }} />
+            <View style={{ width: 12, height: 2, backgroundColor: colors.textMuted, borderRadius: 1, transform: [{ rotate: '-45deg' }], position: 'absolute' }} />
           </View>
         </TouchableOpacity>
       </View>
@@ -128,64 +133,65 @@ function FavoriteCard({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  header: {
-    paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.base,
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: Spacing.md,
-  },
-  title: {
-    fontFamily: Typography.display.bold,
-    fontSize: FontSizes['2xl'],
-    color: Colors.textPrimary,
-  },
-  count: {
-    fontFamily: Typography.sans.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.textMuted,
-  },
-  list: {
-    padding: Spacing.base,
-    paddingBottom: Spacing['3xl'],
-  },
-  card: {
-    backgroundColor: Colors.surfaceElevated,
-    padding: Spacing.base,
-    borderRadius: Radius.lg,
-    marginBottom: Spacing.md,
-    ...Shadows.sm,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Spacing.sm,
-  },
-  reference: {
-    fontFamily: Typography.sans.semiBold,
-    fontSize: FontSizes.sm,
-    color: Colors.accent,
-  },
-  text: {
-    fontFamily: Typography.serif.regular,
-    fontSize: FontSizes.sm,
-    color: Colors.textSecondary,
-    lineHeight: 22,
-  },
-  removeBtn: {
-    padding: Spacing.xs,
-  },
-  removeIcon: {
-    width: 16,
-    height: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      paddingHorizontal: Spacing.base,
+      paddingTop: Spacing.xl,
+      paddingBottom: Spacing.base,
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      gap: Spacing.md,
+    },
+    title: {
+      fontFamily: Typography.display.bold,
+      fontSize: FontSizes['2xl'],
+      color: colors.textPrimary,
+    },
+    count: {
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.sm,
+      color: colors.textMuted,
+    },
+    list: {
+      padding: Spacing.base,
+      paddingBottom: Spacing['3xl'],
+    },
+    card: {
+      backgroundColor: colors.surfaceElevated,
+      padding: Spacing.base,
+      borderRadius: Radius.lg,
+      marginBottom: Spacing.md,
+      ...Shadows.sm,
+    },
+    cardHeader: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: Spacing.sm,
+    },
+    reference: {
+      fontFamily: Typography.sans.semiBold,
+      fontSize: FontSizes.sm,
+      color: colors.accent,
+    },
+    text: {
+      fontFamily: Typography.serif.regular,
+      fontSize: FontSizes.sm,
+      color: colors.textSecondary,
+      lineHeight: 22,
+    },
+    removeBtn: {
+      padding: Spacing.xs,
+    },
+    removeIcon: {
+      width: 16,
+      height: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

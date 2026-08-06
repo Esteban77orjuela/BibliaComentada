@@ -3,7 +3,7 @@
 // Fila de versículo limpia — toca para abrir BottomSheet
 // ============================================================
 
-import React, { memo } from 'react';
+import React, { memo, useMemo } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Verse } from '../../types';
 import { Colors, Typography, FontSizes, Spacing } from '../../constants/theme';
+import { useTheme } from '../../theme/ThemeProvider';
 
 interface VerseRowProps {
   verse: Verse;
@@ -24,6 +25,8 @@ const VerseRow = memo(function VerseRow({
   isHighlighted,
   onPress,
 }: VerseRowProps) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <TouchableOpacity
       onPress={() => onPress(verse)}
@@ -41,33 +44,34 @@ const VerseRow = memo(function VerseRow({
 
 export default VerseRow;
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.base,
-    gap: Spacing.md,
-  },
-  containerHighlighted: {
-    backgroundColor: Colors.accentLight,
-    borderRadius: 12,
-    marginHorizontal: Spacing.base,
-  },
-  verseNumber: {
-    fontFamily: Typography.sans.medium,
-    fontSize: FontSizes.xs,
-    color: Colors.textMuted,
-    marginTop: 4,
-    minWidth: 20,
-    textAlign: 'right',
-    flexShrink: 0,
-  },
-  verseText: {
-    flex: 1,
-    fontFamily: Typography.serif.regular,
-    fontSize: FontSizes.base,
-    color: Colors.textPrimary,
-    lineHeight: 26,
-  },
-});
+const createStyles = (colors: Colors) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingHorizontal: Spacing.xl,
+      paddingVertical: Spacing.base,
+      gap: Spacing.md,
+    },
+    containerHighlighted: {
+      backgroundColor: colors.accentLight,
+      borderRadius: 12,
+      marginHorizontal: Spacing.base,
+    },
+    verseNumber: {
+      fontFamily: Typography.sans.medium,
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+      marginTop: 4,
+      minWidth: 20,
+      textAlign: 'right',
+      flexShrink: 0,
+    },
+    verseText: {
+      flex: 1,
+      fontFamily: Typography.serif.regular,
+      fontSize: FontSizes.base,
+      color: colors.textPrimary,
+      lineHeight: 26,
+    },
+  });
