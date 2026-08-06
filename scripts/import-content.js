@@ -234,7 +234,7 @@ async function main() {
   }
 
   db.run('CREATE TABLE IF NOT EXISTS _metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
-  db.run("INSERT OR REPLACE INTO _metadata (key, value) VALUES ('db_version', '3')");
+  db.run("INSERT OR REPLACE INTO _metadata (key, value) VALUES ('db_version', '4')");
   const today = new Date().toISOString().split('T')[0];
   db.run('INSERT OR REPLACE INTO _metadata (key, value) VALUES (?, ?)', ['updated_at', today]);
 

@@ -130,6 +130,15 @@ function generateId(theologian) {
   return `gen1-1-${slug}`;
 }
 
+function parseRange(url) {
+  const last = url.split('/').filter(Boolean).pop();
+  const m = last.match(/^(\d+)(?:[,\-](\d+))?$/);
+  if (!m) return null;
+  const start = parseInt(m[1], 10);
+  const end = m[2] ? parseInt(m[2], 10) : start;
+  return { start, end };
+}
+
 async function fetchWithRetry(url, retries = 3) {
   for (let i = 0; i < retries; i++) {
     try {
@@ -157,11 +166,22 @@ async function main() {
   const buffer = fs.readFileSync(DB_PATH);
   const db = new SQL.Database(buffer);
 
+  db.run(`CREATE TABLE IF NOT EXISTS range_comments (
+    id TEXT PRIMARY KEY,
+    book_id INTEGER NOT NULL,
+    chapter INTEGER NOT NULL,
+    start_verse INTEGER NOT NULL,
+    end_verse INTEGER NOT NULL,
+    theologian TEXT NOT NULL,
+    text TEXT NOT NULL
+  )`);
+
   let imported = 0;
   let errors = 0;
 
   for (const c of COMMENTARIES) {
     const commentId = generateId(c.theologian);
+    const range = parseRange(c.url);
 
     process.stdout.write(`  FETCH ${c.theologian}... `);
     try {
@@ -175,10 +195,22 @@ async function main() {
       }
 
       const jsonContent = htmlToJSON(htmlContent);
-      db.run(
-        'INSERT OR REPLACE INTO comments (id, verse_id, theologian, text) VALUES (?, ?, ?, ?)',
-        [commentId, VERSE_ID, c.theologian, jsonContent]
-      );
+      if (range && range.start === 1 && range.end === 1) {
+        db.run(
+          'INSERT OR REPLACE INTO comments (id, verse_id, theologian, text) VALUES (?, ?, ?, ?)',
+          [commentId, VERSE_ID, c.theologian, jsonContent]
+        );
+      } else if (range) {
+        const rangeId = `range-1-1-${range.start}-${range.end}-${commentId.replace('gen1-1-', '')}`;
+        db.run(
+          'INSERT OR REPLACE INTO range_comments (id, book_id, chapter, start_verse, end_verse, theologian, text) VALUES (?, ?, ?, ?, ?, ?, ?)',
+          [rangeId, 1, 1, range.start, range.end, c.theologian, jsonContent]
+        );
+      } else {
+        process.stdout.write(`BAD URL\n`);
+        errors++;
+        continue;
+      }
       process.stdout.write(`OK (${jsonContent.length} chars)\n`);
       imported++;
     } catch (err) {
@@ -190,7 +222,7 @@ async function main() {
   }
 
   db.run('CREATE TABLE IF NOT EXISTS _metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL)');
-  db.run("INSERT OR REPLACE INTO _metadata (key, value) VALUES ('db_version', '3')");
+  db.run("INSERT OR REPLACE INTO _metadata (key, value) VALUES ('db_version', '4')");
   const today = new Date().toISOString().split('T')[0];
   db.run('INSERT OR REPLACE INTO _metadata (key, value) VALUES (?, ?)', ['updated_at', today]);
 
@@ -199,7 +231,7 @@ async function main() {
 
   console.log(`\nDone: ${imported} imported, ${errors} errors`);
   console.log(`DB size: ${(outBuffer.length / 1024 / 1024).toFixed(1)} MB`);
-  console.log(`DB version: 3`);
+  console.log(`DB version: 4`);
 
   db.close();
 }

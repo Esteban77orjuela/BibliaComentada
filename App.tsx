@@ -92,7 +92,7 @@ export default function App() {
         const verRow = await db.getFirstAsync<{ value: string }>(
           "SELECT value FROM _metadata WHERE key = 'db_version'"
         );
-        const needsReimport = !verRow || verRow.value !== '3';
+        const needsReimport = !verRow || verRow.value !== '4';
 
         if (needsReimport) {
           await db.closeAsync();
