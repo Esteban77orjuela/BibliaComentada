@@ -90,7 +90,7 @@ export async function getComments(verseId: string): Promise<Comment[]> {
 export async function getTheologians(verseId: string): Promise<string[]> {
   try {
     const rows = await getDb().getAllAsync<{ theologian: string }>(
-      'SELECT DISTINCT theologian FROM comments WHERE verse_id = ?',
+      'SELECT DISTINCT theologian FROM comments WHERE verse_id = ? ORDER BY theologian ASC',
       verseId
     );
     return rows.map(r => r.theologian);

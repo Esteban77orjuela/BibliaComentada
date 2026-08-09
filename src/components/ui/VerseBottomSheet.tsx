@@ -14,6 +14,7 @@ import {
   Easing,
   Modal,
   ScrollView,
+  FlatList,
   Dimensions,
   ActivityIndicator,
   PanResponder,
@@ -32,7 +33,12 @@ interface VerseBottomSheetProps {
 }
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
+const SCREEN_WIDTH = Dimensions.get('window').width;
 const SHEET_HEIGHT = SCREEN_HEIGHT * 0.72;
+const PEEK = 32;
+const CARD_GAP = 12;
+const CARD_WIDTH = SCREEN_WIDTH - PEEK * 2;
+const SNAP = CARD_WIDTH + CARD_GAP;
 
 const THEOLOGIAN_CHIPS: Record<string, string> = {
   'Matthew Henry': 'M. Henry',
@@ -49,12 +55,24 @@ export default function VerseBottomSheet({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
   const overlayOpacity = useRef(new Animated.Value(0)).current;
+  const carouselRef = useRef<FlatList<string>>(null);
+  const sheetScrollRef = useRef<ScrollView>(null);
+  const chipsScrollRef = useRef<ScrollView>(null);
+  const chipPositions = useRef<Map<string, { x: number; width: number }>>(new Map());
+  const chipsWidth = useRef(0);
+  const selectedRef = useRef<string | null>(null);
+  const cardHeights = useRef<Map<string, number>>(new Map());
+  const carouselHeight = useRef(new Animated.Value(0)).current;
 
   const [theologians, setTheologians] = useState<string[]>([]);
   const [selectedTheologian, setSelectedTheologian] = useState<string | null>(null);
   const [comments, setComments] = useState<Record<string, Comment>>({});
   const [loading, setLoading] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+
+  useEffect(() => {
+    selectedRef.current = selectedTheologian;
+  }, [selectedTheologian]);
 
   // ── Animación de entrada/salida ──
   useEffect(() => {
@@ -99,6 +117,8 @@ export default function VerseBottomSheet({
     setComments({});
     setSelectedTheologian(null);
     setLoading(true);
+    cardHeights.current.clear();
+    carouselHeight.setValue(0);
 
     FavoritesStore.isFavorite(verse.id).then(setIsFavorite);
 
@@ -115,26 +135,75 @@ export default function VerseBottomSheet({
     });
   }, [verse?.id, visible]);
 
+  const scrollChipIntoView = useCallback((theologian: string) => {
+    const pos = chipPositions.current.get(theologian);
+    const scroll = chipsScrollRef.current;
+    if (!pos || !scroll) return;
+    const target = pos.x - (chipsWidth.current - pos.width) / 2;
+    scroll.scrollTo({ x: Math.max(0, target), animated: true });
+  }, []);
+
   const handleSelectTheologian = useCallback(
-    async (theologian: string) => {
+    (theologian: string) => {
       setSelectedTheologian(theologian);
-      if (!comments[theologian] && verse) {
-        const all = await DatabaseService.getComments(verse.id);
-        const map: Record<string, Comment> = { ...comments };
-        all.forEach(c => { map[c.theologian] = c; });
-        setComments(map);
+      const index = theologians.indexOf(theologian);
+      if (index >= 0) {
+        carouselRef.current?.scrollToOffset({ offset: SNAP * index, animated: true });
+      }
+      scrollChipIntoView(theologian);
+    },
+    [theologians, scrollChipIntoView]
+  );
+
+  const handleCarouselScrollEnd = useCallback(
+    (e: { nativeEvent: { contentOffset: { x: number } } }) => {
+      const index = Math.round(e.nativeEvent.contentOffset.x / SNAP);
+      const theologian = theologians[index];
+      if (theologian && theologian !== selectedRef.current) {
+        setSelectedTheologian(theologian);
+        scrollChipIntoView(theologian);
       }
     },
-    [verse?.id, comments]
+    [theologians, scrollChipIntoView]
   );
+
+  const animateCardHeight = useCallback((theologian: string) => {
+    const height = cardHeights.current.get(theologian);
+    if (!height) return;
+    Animated.timing(carouselHeight, {
+      toValue: height,
+      duration: 200,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: false,
+    }).start();
+  }, [carouselHeight]);
+
+  // Cada comentario ajusta el alto del carrusel a su propio contenido
+  useEffect(() => {
+    if (selectedTheologian) {
+      animateCardHeight(selectedTheologian);
+    }
+  }, [selectedTheologian, theologians, animateCardHeight]);
+
+  // Al cambiar de comentario, el sheet vuelve arriba para leerlo desde el inicio
+  useEffect(() => {
+    if (selectedTheologian) {
+      sheetScrollRef.current?.scrollTo({ y: 0, animated: false });
+    }
+  }, [selectedTheologian]);
+
+  // Al abrir un versículo nuevo, el carrusel arranca en la primera tarjeta
+  useEffect(() => {
+    if (visible && theologians.length > 0) {
+      carouselRef.current?.scrollToOffset({ offset: 0, animated: false });
+    }
+  }, [theologians, visible]);
 
   const handleFavorite = useCallback(async () => {
     if (!verse) return;
     const nowFav = await FavoritesStore.toggleFavorite(verse);
     setIsFavorite(nowFav);
   }, [verse]);
-
-  const currentComment = selectedTheologian ? comments[selectedTheologian] : null;
 
   if (!verse && !visible) return null;
 
@@ -162,6 +231,7 @@ export default function VerseBottomSheet({
         <View style={styles.dragHandle} />
 
         <ScrollView
+          ref={sheetScrollRef}
           showsVerticalScrollIndicator={false}
           bounces={true}
           contentContainerStyle={styles.sheetContent}
@@ -204,9 +274,11 @@ export default function VerseBottomSheet({
                   </View>
 
                   <ScrollView
+                    ref={chipsScrollRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.chipsRow}
+                    onLayout={(e) => { chipsWidth.current = e.nativeEvent.layout.width; }}
                   >
                     {theologians.map(t => {
                       const isSelected = t === selectedTheologian;
@@ -215,6 +287,12 @@ export default function VerseBottomSheet({
                         <TouchableOpacity
                           key={t}
                           onPress={() => handleSelectTheologian(t)}
+                          onLayout={(e) => {
+                            chipPositions.current.set(t, {
+                              x: e.nativeEvent.layout.x,
+                              width: e.nativeEvent.layout.width,
+                            });
+                          }}
                           style={[
                             styles.chip,
                             isSelected && styles.chipSelected,
@@ -234,12 +312,75 @@ export default function VerseBottomSheet({
                     })}
                   </ScrollView>
 
-                  {/* Comentario */}
-                  {currentComment && (
-                    <View style={styles.commentSection}>
-                      <SimpleHTML html={currentComment.text} />
-                    </View>
-                  )}
+                  {/* Carrusel de comentarios — la activa siempre centrada */}
+                  <Animated.View
+                    style={[styles.carouselBleed, { height: carouselHeight, overflow: 'hidden' }]}
+                  >
+                  <FlatList
+                    ref={carouselRef}
+                    data={theologians}
+                    keyExtractor={t => t}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    snapToInterval={SNAP}
+                    snapToAlignment="start"
+                    decelerationRate="fast"
+                    getItemLayout={(_, index) => ({ length: SNAP, offset: SNAP * index, index })}
+                    contentContainerStyle={styles.carouselContent}
+                    extraData={selectedTheologian}
+                    initialNumToRender={3}
+                    maxToRenderPerBatch={3}
+                    windowSize={5}
+                    onMomentumScrollEnd={handleCarouselScrollEnd}
+                    renderItem={({ item, index }) => {
+                      const isActive = item === selectedTheologian;
+                      const comment = comments[item];
+                      return (
+                        <TouchableOpacity
+                          activeOpacity={0.85}
+                          onPress={() => handleSelectTheologian(item)}
+                          onLayout={(e) => {
+                            const h = e.nativeEvent.layout.height;
+                            const prev = cardHeights.current.get(item);
+                            if (prev !== h) {
+                              cardHeights.current.set(item, h);
+                              if (item === selectedRef.current) {
+                                animateCardHeight(item);
+                              }
+                            }
+                          }}
+                          style={[
+                            styles.commentCard,
+                            { width: CARD_WIDTH, marginRight: CARD_GAP },
+                            isActive
+                              ? styles.commentCardActive
+                              : styles.commentCardInactive,
+                          ]}
+                        >
+                          <View style={styles.commentCardHeader}>
+                            <Text
+                              style={[
+                                styles.commentAuthor,
+                                isActive && styles.commentAuthorActive,
+                              ]}
+                              numberOfLines={1}
+                            >
+                              {item}
+                            </Text>
+                            {isActive && <View style={styles.activeIndicator} />}
+                          </View>
+                          {comment ? (
+                            <SimpleHTML html={comment.text} />
+                          ) : (
+                            <Text style={styles.commentEmpty}>
+                              Comentario no disponible.
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    }}
+                  />
+                  </Animated.View>
                 </>
               ) : (
                 <View style={styles.noComments}>
@@ -431,9 +572,56 @@ const createStyles = (colors: Colors) =>
     color: colors.textInverse,
   },
 
-  // Comentario
-  commentSection: {
-    marginTop: Spacing.md,
+  // Carrusel de comentarios
+  carouselBleed: {
+    marginHorizontal: -Spacing.xl,
+  },
+  carouselContent: {
+    paddingHorizontal: PEEK,
+    paddingBottom: Spacing.base,
+    alignItems: 'flex-start',
+  },
+  commentCard: {
+    backgroundColor: colors.surfaceCard,
+    borderRadius: Radius.lg,
+    borderWidth: 1.5,
+    padding: Spacing.base,
+  },
+  commentCardActive: {
+    borderColor: colors.accentMid,
+    opacity: 1,
+  },
+  commentCardInactive: {
+    borderColor: colors.border,
+    opacity: 0.55,
+  },
+  commentCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: Spacing.sm,
+    paddingBottom: Spacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  commentAuthor: {
+    fontFamily: Typography.sans.semiBold,
+    fontSize: FontSizes.sm,
+    color: colors.textMuted,
+  },
+  commentAuthorActive: {
+    color: colors.accentDark,
+  },
+  activeIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: colors.accent,
+  },
+  commentEmpty: {
+    fontFamily: Typography.serif.italic,
+    fontSize: FontSizes.base,
+    color: colors.textMuted,
   },
 
   // Sin comentarios
