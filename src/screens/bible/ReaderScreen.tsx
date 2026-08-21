@@ -104,7 +104,7 @@ export default function ReaderScreen() {
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         ListHeaderComponent={
-          <ChapterHeader book={book.name} chapter={chapter} total={verses.length} />
+          <ChapterHeader total={verses.length} />
         }
         showsVerticalScrollIndicator={false}
         onScrollToIndexFailed={info => {
@@ -125,23 +125,14 @@ export default function ReaderScreen() {
   );
 }
 
-function ChapterHeader({
-  book,
-  chapter,
-  total,
-}: {
-  book: string;
-  chapter: number;
-  total: number;
-}) {
+function ChapterHeader({ total }: { total: number }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.chapterHeader}>
-      <Text style={styles.chapterTitle}>
-        {book} {chapter}
+      <Text style={styles.chapterMeta}>
+        {total} versículos · Toca un versículo para leer sus comentarios
       </Text>
-      <Text style={styles.chapterMeta}>{total} versículos · Toca para ver comentarios</Text>
     </View>
   );
 }
@@ -171,12 +162,6 @@ const createStyles = (colors: Colors) =>
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
       marginBottom: Spacing.base,
-    },
-    chapterTitle: {
-      fontFamily: Typography.display.bold,
-      fontSize: FontSizes['2xl'],
-      color: colors.textPrimary,
-      marginBottom: 4,
     },
     chapterMeta: {
       fontFamily: Typography.sans.regular,

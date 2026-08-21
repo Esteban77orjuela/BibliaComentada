@@ -17,7 +17,6 @@ import {
   FlatList,
   Dimensions,
   ActivityIndicator,
-  PanResponder,
 } from 'react-native';
 import { Verse, Comment } from '../../types';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../../constants/theme';
@@ -63,12 +62,44 @@ export default function VerseBottomSheet({
   const selectedRef = useRef<string | null>(null);
   const cardHeights = useRef<Map<string, number>>(new Map());
   const carouselHeight = useRef(new Animated.Value(0)).current;
+  const bookmarkScale = useRef(new Animated.Value(1)).current;
+  const toastAnim = useRef(new Animated.Value(0)).current;
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [theologians, setTheologians] = useState<string[]>([]);
   const [selectedTheologian, setSelectedTheologian] = useState<string | null>(null);
   const [comments, setComments] = useState<Record<string, Comment>>({});
   const [loading, setLoading] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+    };
+  }, []);
+
+  const showToast = useCallback(
+    (msg: string) => {
+      setToastMsg(msg);
+      toastAnim.setValue(0);
+      Animated.timing(toastAnim, {
+        toValue: 1,
+        duration: 180,
+        easing: Easing.out(Easing.ease),
+        useNativeDriver: true,
+      }).start();
+      if (toastTimer.current) clearTimeout(toastTimer.current);
+      toastTimer.current = setTimeout(() => {
+        Animated.timing(toastAnim, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }).start(() => setToastMsg(null));
+      }, 1600);
+    },
+    [toastAnim]
+  );
 
   useEffect(() => {
     selectedRef.current = selectedTheologian;
@@ -203,7 +234,21 @@ export default function VerseBottomSheet({
     if (!verse) return;
     const nowFav = await FavoritesStore.toggleFavorite(verse);
     setIsFavorite(nowFav);
-  }, [verse]);
+    Animated.sequence([
+      Animated.timing(bookmarkScale, {
+        toValue: 1.3,
+        duration: 120,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.spring(bookmarkScale, {
+        toValue: 1,
+        friction: 3,
+        useNativeDriver: true,
+      }),
+    ]).start();
+    showToast(nowFav ? '✓ Guardado en Guardados' : 'Quitado de Guardados');
+  }, [verse, bookmarkScale, showToast]);
 
   if (!verse && !visible) return null;
 
@@ -230,6 +275,29 @@ export default function VerseBottomSheet({
         {/* Drag indicator */}
         <View style={styles.dragHandle} />
 
+        {/* Toast de confirmación */}
+        {toastMsg && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.toast,
+              {
+                opacity: toastAnim,
+                transform: [
+                  {
+                    translateY: toastAnim.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [-10, 0],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
+            <Text style={styles.toastText}>{toastMsg}</Text>
+          </Animated.View>
+        )}
+
         <ScrollView
           ref={sheetScrollRef}
           showsVerticalScrollIndicator={false}
@@ -247,8 +315,14 @@ export default function VerseBottomSheet({
                   style={styles.bookmarkBtn}
                   onPress={handleFavorite}
                   activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    isFavorite ? 'Quitar de guardados' : 'Guardar versículo'
+                  }
                 >
-                  <BookmarkIcon filled={isFavorite} color={colors.accent} background={colors.background} muted={colors.textMuted} />
+                  <Animated.View style={{ transform: [{ scale: bookmarkScale }] }}>
+                    <BookmarkIcon filled={isFavorite} color={colors.accent} background={colors.background} muted={colors.textMuted} />
+                  </Animated.View>
                 </TouchableOpacity>
               </View>
 
@@ -358,15 +432,23 @@ export default function VerseBottomSheet({
                           ]}
                         >
                           <View style={styles.commentCardHeader}>
-                            <Text
-                              style={[
-                                styles.commentAuthor,
-                                isActive && styles.commentAuthorActive,
-                              ]}
-                              numberOfLines={1}
-                            >
-                              {item}
-                            </Text>
+                            {isActive ? (
+                              <View style={styles.authorPill}>
+                                <Text
+                                  style={[
+                                    styles.commentAuthor,
+                                    styles.commentAuthorActive,
+                                  ]}
+                                  numberOfLines={1}
+                                >
+                                  {item}
+                                </Text>
+                              </View>
+                            ) : (
+                              <Text style={styles.commentAuthor} numberOfLines={1}>
+                                {item}
+                              </Text>
+                            )}
                             {isActive && <View style={styles.activeIndicator} />}
                           </View>
                           {comment ? (
@@ -467,6 +549,24 @@ const createStyles = (colors: Colors) =>
     marginTop: Spacing.md,
     marginBottom: Spacing.xs,
   },
+  toast: {
+    position: 'absolute',
+    top: Spacing.lg,
+    alignSelf: 'center',
+    zIndex: 20,
+    backgroundColor: colors.darkCard,
+    borderWidth: 1,
+    borderColor: colors.accentMid,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: Spacing.sm,
+    borderRadius: Radius.full,
+    ...Shadows.sm,
+  },
+  toastText: {
+    fontFamily: Typography.sans.semiBold,
+    fontSize: FontSizes.sm,
+    color: colors.darkCardText,
+  },
   sheetContent: {
     paddingHorizontal: Spacing.xl,
     paddingTop: Spacing.base,
@@ -560,8 +660,8 @@ const createStyles = (colors: Colors) =>
     borderColor: colors.border,
   },
   chipSelected: {
-    backgroundColor: colors.darkCard,
-    borderColor: colors.darkCard,
+    backgroundColor: colors.selectionBg,
+    borderColor: colors.selectionBg,
   },
   chipText: {
     fontFamily: Typography.sans.semiBold,
@@ -569,7 +669,7 @@ const createStyles = (colors: Colors) =>
     color: colors.textSecondary,
   },
   chipTextSelected: {
-    color: colors.textInverse,
+    color: colors.selectionText,
   },
 
   // Carrusel de comentarios
@@ -588,7 +688,7 @@ const createStyles = (colors: Colors) =>
     padding: Spacing.base,
   },
   commentCardActive: {
-    borderColor: colors.accentMid,
+    borderColor: colors.accent,
     opacity: 1,
   },
   commentCardInactive: {
@@ -609,8 +709,16 @@ const createStyles = (colors: Colors) =>
     fontSize: FontSizes.sm,
     color: colors.textMuted,
   },
+  authorPill: {
+    flexShrink: 1,
+    maxWidth: '100%',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: Radius.full,
+    backgroundColor: colors.selectionBg,
+  },
   commentAuthorActive: {
-    color: colors.accentDark,
+    color: colors.selectionText,
   },
   activeIndicator: {
     width: 8,

@@ -53,6 +53,22 @@ export default function HomeScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const dailyVerse = getDailyVerse();
+  const [quickBooks, setQuickBooks] = useState<Book[]>([]);
+
+  // Resolver los libros de acceso rápido desde la BD
+  useEffect(() => {
+    let mounted = true;
+    DatabaseService.getBooks().then(all => {
+      if (!mounted) return;
+      const found = QUICK_BOOKS.map(
+        qb => all.find(b => b.name === qb.name)
+      ).filter(Boolean) as Book[];
+      setQuickBooks(found);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Animación de entrada
   useEffect(() => {
@@ -198,11 +214,11 @@ export default function HomeScreen() {
         >
           <Text style={styles.sectionTitle}>Acceso Rápido</Text>
           <View style={styles.quickRow}>
-            {QUICK_BOOKS.map((book) => (
+            {quickBooks.map((book) => (
               <TouchableOpacity
                 key={book.name}
                 style={styles.quickChip}
-                onPress={() => navigation.navigate('Books', { testament: book.testament })}
+                onPress={() => navigation.navigate('Chapters', { book })}
                 activeOpacity={0.75}
               >
                 <Text style={styles.quickChipText}>{book.name}</Text>

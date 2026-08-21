@@ -344,7 +344,7 @@ const createStyles = (colors: Colors) =>
       color: colors.textSecondary,
     },
     segmentTextSelected: {
-      color: colors.textInverse,
+      color: colors.onAccent,
     },
     statusRow: {
       flexDirection: 'row',
@@ -385,7 +385,7 @@ const createStyles = (colors: Colors) =>
     primaryButtonText: {
       fontFamily: Typography.sans.bold,
       fontSize: FontSizes.base,
-      color: colors.textInverse,
+      color: colors.onAccent,
       letterSpacing: 0.3,
     },
     infoRow: {

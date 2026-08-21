@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { BibleStackParamList, SearchResult } from '../types';
+import { SearchResult } from '../types';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../constants/theme';
 import { useTheme } from '../theme/ThemeProvider';
 import * as DatabaseService from '../services/DatabaseService';
@@ -239,7 +239,7 @@ const createStyles = (colors: Colors) =>
       borderRadius: Radius.full,
     },
     badgeComment: {
-      backgroundColor: '#dbeafe',
+      backgroundColor: colors.infoBadgeBg,
     },
     badgeText: {
       fontFamily: Typography.sans.semiBold,
@@ -249,7 +249,7 @@ const createStyles = (colors: Colors) =>
       letterSpacing: 0.5,
     },
     badgeTextComment: {
-      color: '#1e40af',
+      color: colors.infoBadgeText,
     },
     reference: {
       fontFamily: Typography.sans.semiBold,

@@ -54,13 +54,13 @@ export default function BibleStack() {
       <Stack.Screen
         name="Chapters"
         component={ChaptersScreen}
-        options={({ route }) => ({ title: route.params.book.name })}
+        options={{ title: '' }}
       />
       <Stack.Screen
         name="Reader"
         component={ReaderScreen}
         options={({ route }) => ({
-          title: `${route.params.book.abbreviation} ${route.params.chapter}`,
+          title: `${route.params.book.name} ${route.params.chapter}`,
           headerLargeTitle: false,
         })}
       />

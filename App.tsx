@@ -3,6 +3,7 @@ import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, StatusBar 
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { openDatabaseAsync, importDatabaseFromAssetAsync } from 'expo-sqlite';
+import * as SystemUI from 'expo-system-ui';
 import {
   useFonts,
   Inter_400Regular,
@@ -82,6 +83,11 @@ function AppContent() {
   const [state, setState] = useState<'loading' | 'ready' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const [loadingTimeout, setLoadingTimeout] = useState(false);
+
+  // Fondo raíz del sistema: evita destello blanco en transiciones (Android)
+  useEffect(() => {
+    SystemUI.setBackgroundColorAsync(colors.background).catch(() => {});
+  }, [colors.background]);
 
   useEffect(() => {
     let mounted = true;

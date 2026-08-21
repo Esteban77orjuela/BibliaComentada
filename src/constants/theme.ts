@@ -26,6 +26,11 @@ export type Colors = {
   tabInactive: string;
   overlay: string;
   highlightBg: string;
+  onAccent: string;
+  selectionBg: string;
+  selectionText: string;
+  infoBadgeBg: string;
+  infoBadgeText: string;
 };
 
 export const lightColors: Colors = {
@@ -62,42 +67,56 @@ export const lightColors: Colors = {
   // Overlay
   overlay: 'rgba(26, 20, 16, 0.55)',
   highlightBg: '#FBF3E2',
+
+  // Selección / contraste sobre acento
+  onAccent: '#241A0E',
+  selectionBg: '#1C1610',
+  selectionText: '#F5EDD6',
+  infoBadgeBg: '#DBEAFE',
+  infoBadgeText: '#1E40AF',
 };
 
 export const darkColors: Colors = {
-  // Backgrounds — negro cálido
-  background: '#14110E',        // fondo principal
-  surface: '#1E1A15',           // pergamino oscuro
-  surfaceElevated: '#262119',   // elevado
-  surfaceCard: '#211C15',       // cards
-  border: '#373128',            // borde
-  borderStrong: '#4A4237',      // borde más oscuro
+  // Backgrounds — carbón cálido neutro
+  background: '#131110',
+  surface: '#1B1815',
+  surfaceElevated: '#242019',
+  surfaceCard: '#211D17',
+  border: '#3A342C',
+  borderStrong: '#4E463A',
 
   // Texto — crema
-  textPrimary: '#F1E9DA',       // crema principal
-  textSecondary: '#C8BFAE',     // crema suave
-  textMuted: '#8D8374',         // crema apagada
-  textInverse: '#14110E',
+  textPrimary: '#F4EDE0',
+  textSecondary: '#CCC3B2',
+  textMuted: '#9A9081',
+  textInverse: '#131110',
 
-  // Accent — Dorado brillante
-  accent: '#D3A44E',            // dorado principal
-  accentDark: '#B98A33',        // dorado oscuro
-  accentLight: '#2C2418',       // dorado muy oscuro
-  accentMid: '#8A6A2F',         // dorado medio
+  // Accent — Dorado luminoso
+  accent: '#DCAF5A',
+  accentDark: '#C29544',
+  accentLight: '#332818',
+  accentMid: '#7A5F2B',
 
   // Dark Card — casi negro (para contraste sobre oscuro)
-  darkCard: '#0E0C0A',          // más oscuro que el fondo
-  darkCardText: '#F5EDD6',      // crema sobre oscuro
-  darkCardAccent: '#E8A53A',    // naranja dorado sobre oscuro
+  darkCard: '#0D0B09',
+  darkCardText: '#F5EDD6',
+  darkCardAccent: '#E8A53A',
 
   // Tab Bar
-  tabBarBg: '#0E0C0A',          // casi negro
-  tabActive: '#F1E9DA',         // crema activo
-  tabInactive: '#6E675C',       // gris apagado
+  tabBarBg: '#0D0B09',
+  tabActive: '#F4EDE0',
+  tabInactive: '#837B6E',
 
   // Overlay
-  overlay: 'rgba(0, 0, 0, 0.6)',
-  highlightBg: '#2C2418',
+  overlay: 'rgba(0, 0, 0, 0.65)',
+  highlightBg: '#33281A',
+
+  // Selección / contraste sobre acento
+  onAccent: '#241A0E',
+  selectionBg: '#DCAF5A',
+  selectionText: '#241A0E',
+  infoBadgeBg: '#1E2A45',
+  infoBadgeText: '#9DB8E8',
 };
 
 export const Typography = {
