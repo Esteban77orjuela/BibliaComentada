@@ -44,3 +44,8 @@ yarn-error.*
 AGENTS.md
 CLAUDE.md
 .claude/
+assets/bible.db.bak
+scripts/data/
+android/
+*.apk
+*.aab
