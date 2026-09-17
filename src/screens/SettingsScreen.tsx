@@ -3,11 +3,14 @@
 // Ajustes: apariencia (tema) + buscar actualizaciones por OTA
 // ============================================================
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Updates from 'expo-updates';
 import { Colors, Typography, FontSizes, Spacing, Radius, Shadows } from '../constants/theme';
 import { useTheme, ThemePreference } from '../theme/ThemeProvider';
+import * as DatabaseService from '../services/DatabaseService';
+import { Translation } from '../types';
 
 type UpdateStatus =
   | 'idle'
@@ -29,6 +32,36 @@ export default function SettingsScreen() {
   const { colors, isDark, preference, setPreference } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [status, setStatus] = useState<UpdateStatus>('idle');
+  const [translations, setTranslations] = useState<Translation[]>([]);
+  const [selectedTranslationId, setSelectedTranslationId] = useState<number>(1);
+  const [translationsLoading, setTranslationsLoading] = useState(true);
+
+  // Load translations and saved preference
+  useEffect(() => {
+    const loadTranslations = async () => {
+      try {
+        const trans = await DatabaseService.getTranslations();
+        setTranslations(trans);
+        const saved = await AsyncStorage.getItem('selected_translation_id');
+        if (saved) {
+          setSelectedTranslationId(parseInt(saved, 10));
+        } else {
+          const defaultTrans = trans.find(t => t.isDefault);
+          if (defaultTrans) setSelectedTranslationId(defaultTrans.id);
+        }
+      } catch (e) {
+        console.warn('Error loading translations:', e);
+      } finally {
+        setTranslationsLoading(false);
+      }
+    };
+    loadTranslations();
+  }, []);
+
+  const handleTranslationChange = async (translationId: number) => {
+    setSelectedTranslationId(translationId);
+    await AsyncStorage.setItem('selected_translation_id', translationId.toString());
+  };
 
   const checkForUpdates = async () => {
     setStatus('checking');
@@ -127,6 +160,51 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      {/* ── Traducción ── */}
+      <Text style={styles.sectionTitle}>Traducción</Text>
+      <View style={styles.card}>
+        <View style={styles.cardHeader}>
+          <View style={styles.iconBg}>
+            <TranslationIcon color={colors.accent} />
+          </View>
+          <View style={styles.cardHeaderText}>
+            <Text style={styles.cardTitle}>Traducción de la Biblia</Text>
+            <Text style={styles.cardSubtitle}>Selecciona la versión para lectura y búsqueda</Text>
+          </View>
+        </View>
+
+        {translationsLoading ? (
+          <ActivityIndicator size="small" color={colors.accent} style={{ padding: Spacing.md }} />
+        ) : (
+          <View style={styles.segmentRow}>
+            {translations.map((t) => {
+              const selected = selectedTranslationId === t.id;
+              return (
+                <TouchableOpacity
+                  key={t.id}
+                  style={[styles.segment, selected && styles.segmentSelected]}
+                  onPress={() => handleTranslationChange(t.id)}
+                  activeOpacity={0.8}
+                  disabled={selected}
+                >
+                  <Text
+                    style={[styles.segmentText, selected && styles.segmentTextSelected]}
+                  >
+                    {t.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
+
+        {translations.map((t) => (
+          <Text key={t.id} style={styles.creditText}>
+            {t.copyright}
+          </Text>
+        ))}
+      </View>
+
       {/* ── Actualización ── */}
       <Text style={styles.sectionTitle}>Actualización</Text>
       <View style={styles.card}>
@@ -210,6 +288,33 @@ function ThemeIcon({ color }: { color: string }) {
           top: 1.5,
         }}
       />
+    </View>
+  );
+}
+
+function TranslationIcon({ color }: { color: string }) {
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+      <View
+        style={{
+          width: 18,
+          height: 18,
+          borderRadius: 9,
+          borderWidth: 2.5,
+          borderColor: color,
+        }}
+      />
+      <Text
+        style={{
+          position: 'absolute',
+          fontSize: 10,
+          fontWeight: 'bold',
+          color: color,
+          fontFamily: 'System',
+        }}
+      >
+        Τ
+      </Text>
     </View>
   );
 }
@@ -345,6 +450,13 @@ const createStyles = (colors: Colors) =>
     },
     segmentTextSelected: {
       color: colors.onAccent,
+    },
+    creditText: {
+      fontFamily: Typography.sans.regular,
+      fontSize: FontSizes.xs,
+      color: colors.textMuted,
+      marginTop: Spacing.sm,
+      lineHeight: 16,
     },
     statusRow: {
       flexDirection: 'row',

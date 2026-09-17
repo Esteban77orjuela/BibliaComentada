@@ -18,6 +18,47 @@ function getDb(): SQLiteDatabase {
   return db;
 }
 
+export interface Translation {
+  id: number;
+  code: string;
+  name: string;
+  fullName: string;
+  copyright: string;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+export async function getTranslations(): Promise<Translation[]> {
+  const rows = await getDb().getAllAsync<any>(
+    'SELECT id, code, name, full_name AS fullName, copyright, is_default AS isDefault, sort_order AS sortOrder FROM translations ORDER BY sort_order ASC'
+  );
+  return rows.map(r => ({
+    id: r.id,
+    code: r.code,
+    name: r.name,
+    fullName: r.fullName,
+    copyright: r.copyright,
+    isDefault: Boolean(r.isDefault),
+    sortOrder: r.sortOrder,
+  }));
+}
+
+export async function getDefaultTranslation(): Promise<Translation | null> {
+  const row = await getDb().getFirstAsync<any>(
+    'SELECT id, code, name, full_name AS fullName, copyright, is_default AS isDefault, sort_order AS sortOrder FROM translations WHERE is_default = 1 LIMIT 1'
+  );
+  if (!row) return null;
+  return {
+    id: row.id,
+    code: row.code,
+    name: row.name,
+    fullName: row.fullName,
+    copyright: row.copyright,
+    isDefault: Boolean(row.isDefault),
+    sortOrder: row.sortOrder,
+  };
+}
+
 export async function getBooks(): Promise<Book[]> {
   const rows = await getDb().getAllAsync<Omit<Book, 'totalChapters'> & { total_chapters: number; book_order: number }>(
     'SELECT id, name, abbreviation, testament, total_chapters, book_order FROM books ORDER BY book_order ASC'
@@ -37,16 +78,17 @@ export async function getTotalChapters(bookId: number): Promise<number> {
   return row?.total_chapters ?? 0;
 }
 
-export async function getVerses(bookId: number, chapter: number): Promise<Verse[]> {
+export async function getVerses(bookId: number, chapter: number, translationId: number = 1): Promise<Verse[]> {
   const book = await getDb().getFirstAsync<{ name: string }>(
     'SELECT name FROM books WHERE id = ?',
     bookId
   );
   const bookName = book?.name ?? '';
   const rows = await getDb().getAllAsync<any>(
-    `SELECT id, chapter, verse, text FROM verses WHERE book_id = ? AND chapter = ? ORDER BY verse ASC`,
+    `SELECT id, chapter, verse, text FROM verses WHERE book_id = ? AND chapter = ? AND translation_id = ? ORDER BY verse ASC`,
     bookId,
-    chapter
+    chapter,
+    translationId
   );
   return rows.map(r => ({
     id: r.id,
@@ -58,11 +100,12 @@ export async function getVerses(bookId: number, chapter: number): Promise<Verse[
   }));
 }
 
-export async function getVerseById(verseId: string): Promise<Verse | null> {
+export async function getVerseById(verseId: string, translationId: number = 1): Promise<Verse | null> {
   const row = await getDb().getFirstAsync<any>(
     `SELECT v.id, v.book_id AS bookId, b.name AS bookName, v.chapter, v.verse, v.text
-     FROM verses v JOIN books b ON b.id = v.book_id WHERE v.id = ?`,
-    verseId
+     FROM verses v JOIN books b ON b.id = v.book_id WHERE v.id = ? AND v.translation_id = ?`,
+    verseId,
+    translationId
   );
   if (!row) return null;
   return {
@@ -99,7 +142,7 @@ export async function getTheologians(verseId: string): Promise<string[]> {
   }
 }
 
-export async function searchContent(query: string): Promise<SearchResult[]> {
+export async function searchContent(query: string, translationId: number = 1): Promise<SearchResult[]> {
   if (!query.trim()) return [];
   const q = query.toLowerCase().trim();
   const results: SearchResult[] = [];
@@ -107,8 +150,9 @@ export async function searchContent(query: string): Promise<SearchResult[]> {
   const verseRows = await getDb().getAllAsync<any>(
     `SELECT v.id, v.book_id AS bookId, b.name AS bookName, v.chapter, v.verse, v.text
      FROM verses v JOIN books b ON b.id = v.book_id
-     WHERE LOWER(v.text) LIKE '%' || ? || '%' LIMIT 50`,
-    q
+     WHERE LOWER(v.text) LIKE '%' || ? || '%' AND v.translation_id = ? LIMIT 50`,
+    q,
+    translationId
   );
 
   for (const v of verseRows) {
@@ -137,8 +181,9 @@ export async function searchContent(query: string): Promise<SearchResult[]> {
        FROM comments c
        JOIN verses v ON v.id = c.verse_id
        JOIN books b ON b.id = v.book_id
-       WHERE LOWER(c.text) LIKE '%' || ? || '%' LIMIT 50`,
-      q
+       WHERE LOWER(c.text) LIKE '%' || ? || '%' AND v.translation_id = ? LIMIT 50`,
+      q,
+      translationId
     );
 
     for (const c of commentRows) {

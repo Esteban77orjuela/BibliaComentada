@@ -29,6 +29,7 @@ interface VerseBottomSheetProps {
   verse: Verse | null;
   visible: boolean;
   onClose: () => void;
+  translationId?: number;
 }
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -49,6 +50,7 @@ export default function VerseBottomSheet({
   verse,
   visible,
   onClose,
+  translationId = 1,
 }: VerseBottomSheetProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -164,7 +166,7 @@ export default function VerseBottomSheet({
       }
       setLoading(false);
     });
-  }, [verse?.id, visible]);
+  }, [verse?.id, visible, translationId]);
 
   const scrollChipIntoView = useCallback((theologian: string) => {
     const pos = chipPositions.current.get(theologian);
@@ -526,7 +528,7 @@ function BookmarkIcon({
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: colors.overlay,
   },
   sheet: {

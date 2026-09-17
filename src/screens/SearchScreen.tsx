@@ -2,7 +2,7 @@
 // BibliaPlus Pro — SearchScreen  (Redesign 2026)
 // ============================================================
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,7 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { SearchResult } from '../types';
@@ -32,6 +33,13 @@ export default function SearchScreen() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
+  const [translationId, setTranslationId] = useState<number>(1);
+
+  useEffect(() => {
+    AsyncStorage.getItem('selected_translation_id').then(saved => {
+      if (saved) setTranslationId(parseInt(saved, 10));
+    });
+  }, []);
 
   const handleSearch = useCallback(async (text: string) => {
     setQuery(text);
@@ -42,10 +50,10 @@ export default function SearchScreen() {
     }
     setLoading(true);
     setHasSearched(true);
-    const res = await DatabaseService.searchContent(text);
+    const res = await DatabaseService.searchContent(text, translationId);
     setResults(res);
     setLoading(false);
-  }, []);
+  }, [translationId]);
 
   const handleResultPress = useCallback(async (result: SearchResult) => {
     const books = await DatabaseService.getBooks();

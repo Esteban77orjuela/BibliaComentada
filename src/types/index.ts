@@ -41,6 +41,21 @@ export interface Article {
   date: string;
 }
 
+export interface Translation {
+  id: number;
+  code: string;
+  name: string;
+  fullName: string;
+  copyright: string;
+  isDefault: boolean;
+  sortOrder: number;
+}
+
+export interface ChapterTarget {
+  book: Book;
+  chapter: number;
+}
+
 export interface Favorite {
   id: string;
   verseId: string;
