@@ -2,7 +2,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text, TouchableOpacity, StatusBar } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import { openDatabaseAsync, importDatabaseFromAssetAsync } from 'expo-sqlite';
+import {
+  openDatabaseAsync,
+  importDatabaseFromAssetAsync,
+  deleteDatabaseAsync,
+} from 'expo-sqlite';
 import * as SystemUI from 'expo-system-ui';
 import {
   useFonts,
@@ -44,6 +48,24 @@ CREATE TABLE IF NOT EXISTS comments (
   FOREIGN KEY (verse_id) REFERENCES verses(id)
 );
 CREATE INDEX IF NOT EXISTS idx_comments_verse ON comments(verse_id);
+CREATE TABLE IF NOT EXISTS translations (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  code TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  full_name TEXT,
+  copyright TEXT,
+  is_default INTEGER DEFAULT 0,
+  sort_order INTEGER DEFAULT 0
+);
+CREATE TABLE IF NOT EXISTS verses (
+  id TEXT NOT NULL,
+  book_id INTEGER NOT NULL,
+  chapter INTEGER NOT NULL,
+  verse INTEGER NOT NULL,
+  text TEXT NOT NULL,
+  translation_id INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY (translation_id, id)
+);
 CREATE TABLE IF NOT EXISTS dictionary_entries (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
@@ -101,16 +123,50 @@ function AppContent() {
         const verRow = await db.getFirstAsync<{ value: string }>(
           "SELECT value FROM _metadata WHERE key = 'db_version'"
         );
-        const needsReimport = !verRow || verRow.value !== '5';
+        const needsReimport = !verRow || verRow.value !== '1531';
 
         if (needsReimport) {
+          await db.execAsync('PRAGMA wal_checkpoint(TRUNCATE);').catch(() => {});
           await db.closeAsync();
+
+          // Borra la BD vieja por completo (junto a sus archivos -wal/-shm) para que el
+          // reimport siempre parta de un archivo limpio, sin depender de forceOverwrite.
+          try {
+            await deleteDatabaseAsync('bible.db');
+          } catch {} // Si no se puede eliminar, el import con forceOverwrite la reemplaza igual
+
           await importDatabaseFromAssetAsync('bible.db', {
             assetId: require('./assets/bible.db'),
             forceOverwrite: true,
           });
+
           db = await openDatabaseAsync('bible.db');
           await db.execAsync(MIGRATIONS);
+
+          const ver2 = await db.getFirstAsync<{ value: string }>(
+            "SELECT value FROM _metadata WHERE key = 'db_version'"
+          );
+          const cols = await db.getAllAsync<{ name: string }>(
+            "SELECT name FROM pragma_table_info('verses')"
+          );
+          const hasTranslationId = cols.some((c) => c.name === 'translation_id');
+          if (!ver2 || ver2.value !== '1531' || !hasTranslationId) {
+            throw new Error('La base de datos incluida no pudo actualizarse (versión esperada: 1531).');
+          }
+        }
+
+        // Reparación idempotente: si la tabla verses quedó con el esquema viejo (sin
+        // translation_id), la columna se agrega. Los versos antiguos eran RV1960.
+        const verseCols = await db.getAllAsync<{ name: string }>(
+          "SELECT name FROM pragma_table_info('verses')"
+        );
+        if (!verseCols.some((c) => c.name === 'translation_id')) {
+          await db.execAsync(
+            'ALTER TABLE verses ADD COLUMN translation_id INTEGER NOT NULL DEFAULT 1;'
+          );
+          console.log(
+            '[DBINFO] columna translation_id agregada a verses (esquema viejo reparado)'
+          );
         }
 
         if (!mounted) return;
