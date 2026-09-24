@@ -432,6 +432,7 @@ async function main() {
   const skipped = [];
   const errors = [];
   let inserted = 0;
+  let didFetch = false;
 
   for (const url of all) {
     const node = parseNodeUrl(url);
@@ -457,6 +458,7 @@ async function main() {
       process.stdout.write(`  FETCH ${label} (${commentId})… `);
       try {
         const rawHtml = await fetchWithRetry(node.url);
+        didFetch = true;
         const content = extractHTMLContent(rawHtml);
         if (!content || content.trim().length < 20) {
           process.stdout.write('EMPTY\n');
@@ -483,6 +485,7 @@ async function main() {
       process.stdout.write(`  FETCH ${label} (${node.range.start}-${node.range.end})… `);
       try {
         const rawHtml = await fetchWithRetry(node.url);
+        didFetch = true;
         const content = extractHTMLContent(rawHtml);
         if (!content || content.trim().length < 20) {
           process.stdout.write('EMPTY\n');
@@ -502,7 +505,8 @@ async function main() {
       }
     }
 
-    await new Promise((r) => setTimeout(r, 1200));
+    await new Promise((r) => setTimeout(r, didFetch ? 1200 : 0));
+    didFetch = false;
   }
 
   let newVersion = null;

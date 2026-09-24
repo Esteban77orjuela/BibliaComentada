@@ -152,6 +152,27 @@ inválido.
   cubiertos solo por rangos (26 nodos rango), sin comentario de versículo único — consistente con
   la regla de oro.
 
+**Éxodo 1–10 en curso (2026-09-21)**: 3.079 comentarios de versículo único repartidos entre
+los 274 versículos (Éx 1:1 – 10:29), 597 rangos en `range_comments`, **0 versículos sin
+cobertura**, 0 duplicados, 0 JSON inválido, ningún comentarista nuevo (siguen los 50 de
+`THEOLOGIANS`). Anomalía benigna: en 5:7 el nodo "Tesoro del conocimiento" devolvió contenido
+vacío (nodo obsoleto en el sitio); el versículo quedó cubierto por 5 comentarios propios +
+1 rango insertados en la misma corrida. Optimización al scraper (sin cambio de datos): el
+sleep de 1.2 s ahora solo aplica cuando se descarga un nodo, no a los ya existentes.
+
+| capítulo | versículos con datos | comments | rangos |
+|:--------:|:--------------------:|:--------:|:------:|
+|    1     |          22          |   255    |   51   |
+|    2     |          25          |   321    |   65   |
+|    3     |          22          |   312    |   51   |
+|    4     |          31          |   389    |   78   |
+|    5     |          23          |   241    |   48   |
+|    6     |          30          |   277    |   58   |
+|    7     |          25          |   284    |   52   |
+|    8     |          32          |   339    |   59   |
+|    9     |          35          |   343    |   79   |
+|   10     |          29          |   318    |   56   |
+
 Historial de comentaristas nuevos y limpiezas (caps.1–10):
 - **Horae Homileticae de Charles Simeon** (id 169; versículo único en 3:4, 3:15, 4:26, 5:24 +
   rangos) y **Comentario de Sutcliffe sobre el Antiguo y el Nuevo Testamento** (id 181; solo

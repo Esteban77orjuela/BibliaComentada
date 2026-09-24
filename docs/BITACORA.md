@@ -163,3 +163,17 @@
   procesos hijos del lote cortado por timeout aún escribían; reiterar el chequeo da 0 faltantes.
 - Pendiente histórico (sin cambios): RV1909 (migration SQL) y revisar 8 filas de HTML crudo en
   Juan cuando se procese ese libro.
+
+### 2026-09-21 (Éxodo 1–10, continuación)
+- Corridas `exodo {1..10}` (274 versículos; logs en `scripts/logs/exo-{1..10}.log`). Slug `exodo`
+  validado en el sitio (1:1 inserta 23 comments + 19 rangos). Todas las corridas con `errores: 0`
+  salvo una anomalía benigna: 5:7 "Tesoro del conocimiento" devolvió contenido vacío (nodo obsoleto)
+  y el versículo quedó cubierto igualmente (5 comments + 1 rango en la misma corrida).
+- Resultado: **3.079 comments** en 274/274 versículos y **597 rangos** (por capítulo: 51/65/51/78/
+  48/58/52/59/79/56). 0 versículos sin cobertura, 0 duplicados, 0 JSON inválido, 0 comentaristas
+  nuevos (siguen los 50 de `THEOLOGIANS`).
+- `db_version` = **1805**. `App.tsx` actualizado a esperar '1805' (3 sitios); `npx tsc --noEmit`
+  limpio. Docs: tabla de Éxodo 1-10 en `COMENTARIOS.md` §4.
+- Optimización al scraper (sin cambio de datos): el sleep de 1.2 s tras cada nodo ahora solo aplica
+  cuando se descarga contenido (los nodos ya existentes saltan al instante); mismo ritmo de red.
+- Pendiente: continuar Éxodo 11-40 y revisar las 8 filas de HTML crudo de Juan.
