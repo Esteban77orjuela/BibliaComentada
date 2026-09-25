@@ -177,3 +177,13 @@
 - Optimización al scraper (sin cambio de datos): el sleep de 1.2 s tras cada nodo ahora solo aplica
   cuando se descarga contenido (los nodos ya existentes saltan al instante); mismo ritmo de red.
 - Pendiente: continuar Éxodo 11-40 y revisar las 8 filas de HTML crudo de Juan.
+
+### 2026-09-24 (Éxodo 11–20, lote 1 de 3)
+- Corridas `exodo {11..20}` (271 versículos; logs en `scripts/logs/exo-{11..20}.log`). Todas con
+  `errores: 0` y 0 anomalías (`EMPTY`/`BAD URL`/`FETCH ERROR`).
+- Resultado: **3.236 comments** nuevos (→ 6.315 en libro) y **572 rangos** nuevos (→ 1.169),
+  sobre 271/271 versículos cubiertos (→ 545 en 1-20). 0 versículos sin cobertura, 0 duplicados,
+  0 JSON inválido, 0 comentaristas nuevos (siguen los 50 de `THEOLOGIANS`).
+- `db_version` = **2076** (2076 `App.tsx` actualizado en 3 sitios; `npx tsc --noEmit` limpio).
+- Docs: tabla Éxodo 11-20 y totales actualizados en `COMENTARIOS.md` §4.
+- Pendiente: Éxodo 21-40 (lotes 2 y 3) y las 8 filas de HTML crudo de Juan.

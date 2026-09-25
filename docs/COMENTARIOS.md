@@ -152,13 +152,14 @@ inválido.
   cubiertos solo por rangos (26 nodos rango), sin comentario de versículo único — consistente con
   la regla de oro.
 
-**Éxodo 1–10 en curso (2026-09-21)**: 3.079 comentarios de versículo único repartidos entre
-los 274 versículos (Éx 1:1 – 10:29), 597 rangos en `range_comments`, **0 versículos sin
+**Éxodo 1–20 en curso (2026-09-24)**: 6.315 comentarios de versículo único repartidos entre
+los 545 versículos (Éx 1:1 – 20:26), 1.169 rangos en `range_comments`, **0 versículos sin
 cobertura**, 0 duplicados, 0 JSON inválido, ningún comentarista nuevo (siguen los 50 de
-`THEOLOGIANS`). Anomalía benigna: en 5:7 el nodo "Tesoro del conocimiento" devolvió contenido
-vacío (nodo obsoleto en el sitio); el versículo quedó cubierto por 5 comentarios propios +
-1 rango insertados en la misma corrida. Optimización al scraper (sin cambio de datos): el
-sleep de 1.2 s ahora solo aplica cuando se descarga un nodo, no a los ya existentes.
+`THEOLOGIANS`). Anomalía benigna (caps.1–10): en 5:7 el nodo "Tesoro del conocimiento" devolvió
+contenido vacío (nodo obsoleto en el sitio); el versículo quedó cubierto por 5 comentarios
+propios + 1 rango insertados en la misma corrida. Optimización al scraper (sin cambio de datos):
+el sleep de 1.2 s ahora solo aplica cuando se descarga un nodo, no a los ya existentes.
+`db_version = 2076`.
 
 | capítulo | versículos con datos | comments | rangos |
 |:--------:|:--------------------:|:--------:|:------:|
@@ -172,6 +173,16 @@ sleep de 1.2 s ahora solo aplica cuando se descarga un nodo, no a los ya existen
 |    8     |          32          |   339    |   59   |
 |    9     |          35          |   343    |   79   |
 |   10     |          29          |   318    |   56   |
+|   11     |          10          |   125    |   31   |
+|   12     |          51          |   602    |   95   |
+|   13     |          22          |   240    |   57   |
+|   14     |          31          |   351    |   64   |
+|   15     |          27          |   333    |   52   |
+|   16     |          36          |   409    |   63   |
+|   17     |          16          |   222    |   35   |
+|   18     |          27          |   277    |   51   |
+|   19     |          25          |   287    |   49   |
+|   20     |          26          |   390    |   75   |
 
 Historial de comentaristas nuevos y limpiezas (caps.1–10):
 - **Horae Homileticae de Charles Simeon** (id 169; versículo único en 3:4, 3:15, 4:26, 5:24 +
