@@ -187,3 +187,16 @@
 - `db_version` = **2076** (2076 `App.tsx` actualizado en 3 sitios; `npx tsc --noEmit` limpio).
 - Docs: tabla Éxodo 11-20 y totales actualizados en `COMENTARIOS.md` §4.
 - Pendiente: Éxodo 21-40 (lotes 2 y 3) y las 8 filas de HTML crudo de Juan.
+
+### 2026-09-24 (Éxodo 21–30, lote 2 de 3)
+- Corridas `exodo {21..30}` (343 versículos; logs en `scripts/logs/exo-{21..30}.log`). La corrida
+  25 se cortó en el vers.18 tras una interrupción; reanudada completa (la BD es idempotente: los
+  1-17 se omiten al instante). Todas las corridas OK.
+- Resultado: **3.148 comments** nuevos (→ **9.463** en libro) y **654 rangos** nuevos (→ **1.823**),
+  sobre 343/343 versículos cubiertos (→ 888 en 1-30). 0 sin cobertura, 0 duplicados, 0 JSON
+  inválido, 0 comentaristas nuevos (siguen 50 en `THEOLOGIANS`).
+- Anomalía benigna: nodo "Tesoro del conocimiento" vacío en 28:25 y 29:42 (mismo caso de 5:7);
+  ambos versículos cubiertos por otros nodos propios y rangos.
+- `db_version` = **2419**; `App.tsx` actualizado (3 sitios); `npx tsc --noEmit` limpio. Docs:
+  tabla Éxodo 1-30 (30 filas) en `COMENTARIOS.md` §4.
+- Pendiente: Éxodo 31-40 (lote 3, cierra el libro 2) y las 8 filas de HTML crudo de Juan.
