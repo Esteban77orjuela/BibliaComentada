@@ -200,3 +200,17 @@
 - `db_version` = **2419**; `App.tsx` actualizado (3 sitios); `npx tsc --noEmit` limpio. Docs:
   tabla Éxodo 1-30 (30 filas) en `COMENTARIOS.md` §4.
 - Pendiente: Éxodo 31-40 (lote 3, cierra el libro 2) y las 8 filas de HTML crudo de Juan.
+
+### 2026-10-02 (Éxodo 31–40, lote 3 → LIBRO 2 COMPLETO)
+- Corridas `exodo {31..40}` (325 versículos; logs en `scripts/logs/exo-{31..40}.log`).
+- Resultado: **2.298 comments** nuevos (→ **11.761** en libro) y **513 rangos** nuevos (→ **2.336**),
+  sobre 325/325 versículos cubiertos (→ **1.213/1.213** del libro). 0 sin cobertura, 0 duplicados,
+  0 JSON inválido, 0 comentaristas nuevos (siguen 50 en `THEOLOGIANS`).
+- Anomalía benigna verificada en vivo: bibliaplus.org sirve nodos por-versículo de "John Gill"
+  **sin contenido** para 123 versículos de Éx 35-40 (la página aún devuelve EMPTY hoy; no es 404
+  ni rate-limit). Los versículos quedan cubiertos por otros comentarios propios y rangos. Se suman
+  a los casos "Tesoro del conocimiento" (5:7, 28:25, 29:42) — todos benignos.
+- `db_version` = **2744**; `App.tsx` actualizado (3 sitios); `npx tsc --noEmit` limpio. Docs:
+  tabla Éxodo 1-40 (40 filas) y cierre del libro en `COMENTARIOS.md` §4.
+- Libros completos hasta ahora: Génesis (1) y Éxodo (2). Pendiente: Levítico y las 8 filas de HTML
+  crudo de Juan.

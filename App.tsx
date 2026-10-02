@@ -123,7 +123,7 @@ function AppContent() {
         const verRow = await db.getFirstAsync<{ value: string }>(
           "SELECT value FROM _metadata WHERE key = 'db_version'"
         );
-        const needsReimport = !verRow || verRow.value !== '2419';
+        const needsReimport = !verRow || verRow.value !== '2744';
 
         if (needsReimport) {
           await db.execAsync('PRAGMA wal_checkpoint(TRUNCATE);').catch(() => {});
@@ -150,8 +150,8 @@ function AppContent() {
             "SELECT name FROM pragma_table_info('verses')"
           );
           const hasTranslationId = cols.some((c) => c.name === 'translation_id');
-          if (!ver2 || ver2.value !== '2419' || !hasTranslationId) {
-            throw new Error('La base de datos incluida no pudo actualizarse (versión esperada: 2419).');
+          if (!ver2 || ver2.value !== '2744' || !hasTranslationId) {
+            throw new Error('La base de datos incluida no pudo actualizarse (versión esperada: 2744).');
           }
         }
 
